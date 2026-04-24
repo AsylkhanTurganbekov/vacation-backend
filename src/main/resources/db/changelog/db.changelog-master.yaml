@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/migrations/001-create-users-table.yaml
+  - include:
+      file: db/changelog/migrations/002-create-business-trip-table.yaml
+  - include:
+      file: db/changelog/migrations/003-create-trip-event-table.yaml
+  - include:
+      file: db/changelog/migrations/004-create-biometric-verification-table.yaml
+  - include:
+      file: db/changelog/migrations/005-create-audit-log-table.yaml
+  - include:
+      file: db/changelog/migrations/006-seed-data.yaml

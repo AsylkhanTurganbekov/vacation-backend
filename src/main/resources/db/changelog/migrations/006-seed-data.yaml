@@ -1,0 +1,105 @@
+databaseChangeLog:
+  - changeSet:
+      id: 006-seed-data
+      author: codex
+      changes:
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: full_name
+                  value: "System Administrator"
+              - column:
+                  name: email
+                  value: "admin@vacation.local"
+              - column:
+                  name: password_hash
+                  value: "$2y$10$l/akXmwRowkq16XmEz51K.6ASVF0r7IYe4.0D/37YB.T0rJlHCnli"
+              - column:
+                  name: role
+                  value: "ADMIN"
+              - column:
+                  name: department
+                  value: "Operations"
+              - column:
+                  name: job_position
+                  value: "Platform Administrator"
+              - column:
+                  name: active
+                  valueBoolean: true
+              - column:
+                  name: created_at
+                  valueDate: "2026-01-01T09:00:00"
+              - column:
+                  name: updated_at
+                  valueDate: "2026-01-01T09:00:00"
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 2
+              - column:
+                  name: full_name
+                  value: "Demo Employee"
+              - column:
+                  name: email
+                  value: "employee@vacation.local"
+              - column:
+                  name: password_hash
+                  value: "$2y$10$neKFe1nbMIg69J0Jh8UjbutIC3UZLCw9l9uji7f1TxcyWyl2iNN4e"
+              - column:
+                  name: role
+                  value: "EMPLOYEE"
+              - column:
+                  name: department
+                  value: "Field Service"
+              - column:
+                  name: job_position
+                  value: "Mobile Engineer"
+              - column:
+                  name: active
+                  valueBoolean: true
+              - column:
+                  name: created_at
+                  valueDate: "2026-01-01T09:15:00"
+              - column:
+                  name: updated_at
+                  valueDate: "2026-01-01T09:15:00"
+        - insert:
+            tableName: business_trips
+            columns:
+              - column:
+                  name: id
+                  valueNumeric: 1
+              - column:
+                  name: employee_id
+                  valueNumeric: 2
+              - column:
+                  name: purpose
+                  value: "Client infrastructure inspection"
+              - column:
+                  name: destination_address
+                  value: "Almaty, Dostyk Avenue 120"
+              - column:
+                  name: planned_start_date_time
+                  valueDate: "2026-04-20T09:00:00"
+              - column:
+                  name: planned_end_date_time
+                  valueDate: "2026-04-22T18:00:00"
+              - column:
+                  name: status
+                  value: "APPROVED"
+              - column:
+                  name: created_at
+                  valueDate: "2026-04-10T10:00:00"
+              - column:
+                  name: updated_at
+                  valueDate: "2026-04-10T10:30:00"
+        - sql:
+            sql: "SELECT setval('users_id_seq', 2, true);"
+        - sql:
+            sql: "SELECT setval('business_trips_id_seq', 1, true);"

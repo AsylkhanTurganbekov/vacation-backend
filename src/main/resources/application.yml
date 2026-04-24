@@ -1,0 +1,74 @@
+spring:
+  application:
+    name: vacation-backend
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: Asia/Almaty
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: Asia/Almaty
+  liquibase:
+    enabled: true
+    change-log: classpath:/db/changelog/db.changelog-master.yaml
+  mvc:
+    problemdetails:
+      enabled: false
+
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH:/}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  health:
+    mail:
+      enabled: false
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    disable-swagger-default-url: true
+    validator-url: none
+
+app:
+  cors:
+    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:*}
+  openapi:
+    local-url: ${APP_OPENAPI_LOCAL_URL:http://localhost:${SERVER_PORT:8081}}
+    prod-url: ${APP_OPENAPI_PROD_URL:}
+  jwt:
+    secret: ${APP_JWT_SECRET:0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF}
+    expiration: ${APP_JWT_EXPIRATION:86400000}
+  biometric:
+    mock-provider-name: ${APP_BIOMETRIC_PROVIDER_NAME:mock-face-provider}
+
+info:
+  app:
+    name: ${spring.application.name}
+    version: ${APP_VERSION:${VERSION:unknown}}
+
+logging:
+  level:
+    org.springframework.security: INFO
+    liquibase: INFO
+    com.company.vacation: INFO

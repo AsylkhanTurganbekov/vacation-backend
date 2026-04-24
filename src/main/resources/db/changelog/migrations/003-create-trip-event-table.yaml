@@ -1,0 +1,88 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-trip-event-table
+      author: codex
+      changes:
+        - createTable:
+            tableName: trip_events
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: trip_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: latitude
+                  type: numeric(10, 7)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: longitude
+                  type: numeric(10, 7)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: address
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_time
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: verification_status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: comment
+                  type: varchar(1000)
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_trip_events_trip
+            baseTableName: trip_events
+            baseColumnNames: trip_id
+            referencedTableName: business_trips
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - createIndex:
+            tableName: trip_events
+            indexName: idx_trip_events_trip_id
+            columns:
+              - column:
+                  name: trip_id
+        - createIndex:
+            tableName: trip_events
+            indexName: idx_trip_events_type
+            columns:
+              - column:
+                  name: type
+        - createIndex:
+            tableName: trip_events
+            indexName: idx_trip_events_event_time
+            columns:
+              - column:
+                  name: event_time
+        - sql:
+            sql: "ALTER TABLE trip_events ADD CONSTRAINT chk_trip_events_type CHECK (type in ('DEPARTURE', 'ARRIVAL', 'RETURN'));"
+        - sql:
+            sql: "ALTER TABLE trip_events ADD CONSTRAINT chk_trip_events_verification_status CHECK (verification_status in ('PENDING', 'VERIFIED', 'FAILED'));"

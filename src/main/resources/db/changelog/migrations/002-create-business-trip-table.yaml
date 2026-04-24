@@ -1,0 +1,93 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-business-trip-table
+      author: codex
+      changes:
+        - createTable:
+            tableName: business_trips
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: employee_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: purpose
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: destination_address
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: planned_start_date_time
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: planned_end_date_time
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: actual_start_date_time
+                  type: timestamp
+              - column:
+                  name: actual_arrival_date_time
+                  type: timestamp
+              - column:
+                  name: actual_return_date_time
+                  type: timestamp
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_business_trips_employee
+            baseTableName: business_trips
+            baseColumnNames: employee_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: RESTRICT
+        - createIndex:
+            tableName: business_trips
+            indexName: idx_business_trips_employee_id
+            columns:
+              - column:
+                  name: employee_id
+        - createIndex:
+            tableName: business_trips
+            indexName: idx_business_trips_status
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            tableName: business_trips
+            indexName: idx_business_trips_planned_start
+            columns:
+              - column:
+                  name: planned_start_date_time
+        - sql:
+            sql: "ALTER TABLE business_trips ADD CONSTRAINT chk_business_trips_status CHECK (status in ('DRAFT', 'APPROVED', 'IN_PROGRESS', 'ARRIVED', 'COMPLETED', 'CANCELLED'));"

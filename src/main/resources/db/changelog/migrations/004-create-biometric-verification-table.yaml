@@ -1,0 +1,74 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-biometric-verification-table
+      author: codex
+      changes:
+        - createTable:
+            tableName: biometric_verifications
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: trip_event_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: employee_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: image_url
+                  type: varchar(1000)
+              - column:
+                  name: match_score
+                  type: numeric(5, 2)
+              - column:
+                  name: verified
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: verified_at
+                  type: timestamp
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_biometric_verifications_trip_event
+            baseTableName: biometric_verifications
+            baseColumnNames: trip_event_id
+            referencedTableName: trip_events
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            constraintName: fk_biometric_verifications_employee
+            baseTableName: biometric_verifications
+            baseColumnNames: employee_id
+            referencedTableName: users
+            referencedColumnNames: id
+            onDelete: RESTRICT
+        - addUniqueConstraint:
+            tableName: biometric_verifications
+            columnNames: trip_event_id
+            constraintName: uk_biometric_verifications_trip_event
+        - createIndex:
+            tableName: biometric_verifications
+            indexName: idx_biometric_verifications_employee_id
+            columns:
+              - column:
+                  name: employee_id
