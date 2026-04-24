@@ -43,15 +43,13 @@ jobs:
 
       - name: Create deploy archive
         run: |
-          tar \
-            --exclude=.git \
-            --exclude=.github \
-            --exclude=.idea \
-            --exclude=.tools \
-            --exclude=target \
-            --exclude=.env \
-            --exclude=vacation-backend-deploy.tar.gz \
-            -czf vacation-backend-deploy.tar.gz .
+          git ls-files -z \
+            ':!README.md' \
+            ':!.github/*' \
+            ':!.idea/*' \
+            ':!.tools/*' \
+            ':!.env' \
+            | tar --null -T - -czf vacation-backend-deploy.tar.gz
 
       - name: Configure SSH key
         run: |
