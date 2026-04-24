@@ -6,11 +6,12 @@
 2. Ты пушишь изменения в `main`
 3. GitHub Actions запускает сборку
 4. После сборки GitHub по SSH заходит на сервер
-5. На сервере выполняется:
+5. GitHub Actions копирует архив проекта на сервер
+6. На сервере архив распаковывается в `/var/www/vacation-backend`
+7. На сервере выполняется:
 
 ```bash
 cd /var/www/vacation-backend
-git pull origin main
 docker compose up --build -d
 ```
 
@@ -110,21 +111,21 @@ git remote add origin https://github.com/<YOUR_ACCOUNT>/vacation-backend.git
 git push -u origin main
 ```
 
-## Make Server Directory A Git Clone
+## Server Directory
 
-Сейчас проект уже развернут вручную в `/var/www/vacation-backend`.
-Для корректного `git pull` в deploy workflow серверная директория должна быть git clone этого репозитория.
+Серверная директория не обязана быть `git clone`.
+Workflow сам копирует новый архив проекта в:
 
-Recommended path:
+- `/tmp/vacation-backend-deploy.tar.gz`
 
-1. Save `.env`
-2. Re-clone repo into `/var/www/vacation-backend`
-3. Restore `.env`
-4. Run:
+И распаковывает его в:
 
-```bash
-docker compose up --build -d
-```
+- `/var/www/vacation-backend`
+
+Важно:
+
+- `.env` на сервере не затирается, потому что он исключен из deploy archive
+- `target`, `.git`, `.idea`, `.tools` тоже не отправляются
 
 ## Manual Check After Push
 
