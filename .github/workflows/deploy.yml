@@ -47,7 +47,8 @@ jobs:
             --exclude=.tools \
             --exclude=target \
             --exclude=.env \
-            -czf /tmp/vacation-backend-deploy.tar.gz .
+            --exclude=vacation-backend-deploy.tar.gz \
+            -czf vacation-backend-deploy.tar.gz .
 
       - name: Copy archive to server
         uses: appleboy/scp-action@v0.1.7
@@ -56,7 +57,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "/tmp/vacation-backend-deploy.tar.gz"
+          source: "vacation-backend-deploy.tar.gz"
           target: "/tmp"
 
       - name: Deploy over SSH
