@@ -25,11 +25,14 @@ public class EmployeeTripController {
     private final AuthContextService authContextService;
 
     @GetMapping
-    public PagedResponse<TripResponse> getEmployeeTrips(@RequestParam(required = false) BusinessTripStatus status,
+    public PagedResponse<TripResponse> getEmployeeTrips(@RequestParam(required = false, name = "q") String queryText,
+                                                        @RequestParam(required = false) BusinessTripStatus status,
+                                                        @RequestParam(required = false) String department,
                                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
                                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
                                                         @PageableDefault(size = 20, sort = "plannedStartDateTime") Pageable pageable) {
-        return businessTripService.getEmployeeTrips(authContextService.currentUserId(), status, dateFrom, dateTo, pageable);
+        return businessTripService.getEmployeeTrips(
+                authContextService.currentUserId(), queryText, status, department, dateFrom, dateTo, pageable);
     }
 
     @GetMapping("/{id}")

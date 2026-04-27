@@ -52,9 +52,10 @@ public class BusinessTripServiceImpl implements BusinessTripService {
     }
 
     @Override
-    public PagedResponse<TripResponse> getTrips(BusinessTripStatus status, Long employeeId,
-                                                LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
-        Specification<BusinessTrip> specification = BusinessTripSpecification.filter(status, employeeId, dateFrom, dateTo);
+    public PagedResponse<TripResponse> getTrips(String queryText, BusinessTripStatus status, Long employeeId,
+                                                String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
+        Specification<BusinessTrip> specification =
+                BusinessTripSpecification.filter(queryText, status, employeeId, department, dateFrom, dateTo);
         return PagedResponse.from(businessTripRepository.findAll(specification, pageable).map(businessTripMapper::toResponse));
     }
 
@@ -108,9 +109,9 @@ public class BusinessTripServiceImpl implements BusinessTripService {
     }
 
     @Override
-    public PagedResponse<TripResponse> getEmployeeTrips(Long employeeId, BusinessTripStatus status,
-                                                        LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
-        return getTrips(status, employeeId, dateFrom, dateTo, pageable);
+    public PagedResponse<TripResponse> getEmployeeTrips(Long employeeId, String queryText, BusinessTripStatus status,
+                                                        String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
+        return getTrips(queryText, status, employeeId, department, dateFrom, dateTo, pageable);
     }
 
     @Override

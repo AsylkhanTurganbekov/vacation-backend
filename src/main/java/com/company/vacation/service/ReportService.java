@@ -9,11 +9,11 @@ import org.springframework.data.domain.Pageable;
 
 public interface ReportService {
 
-    PagedResponse<TripResponse> getTripsReport(BusinessTripStatus status, Long employeeId,
-                                               LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
+    PagedResponse<TripResponse> getTripsReport(String queryText, BusinessTripStatus status, Long employeeId,
+                                               String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
 
     TripSummaryResponse getSummary();
 
-    PagedResponse<TripResponse> getEmployeeTripsReport(Long employeeId, BusinessTripStatus status,
-                                                       LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
+    PagedResponse<TripResponse> getEmployeeTripsReport(Long employeeId, String queryText, BusinessTripStatus status,
+                                                       String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
 }

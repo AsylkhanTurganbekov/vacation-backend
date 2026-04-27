@@ -12,15 +12,29 @@ public final class BusinessTripSpecification {
     private BusinessTripSpecification() {
     }
 
-    public static Specification<BusinessTrip> filter(BusinessTripStatus status, Long employeeId,
-                                                     LocalDateTime dateFrom, LocalDateTime dateTo) {
+    public static Specification<BusinessTrip> filter(String queryText, BusinessTripStatus status, Long employeeId,
+                                                     String department, LocalDateTime dateFrom, LocalDateTime dateTo) {
         return (root, query, criteriaBuilder) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
+            if (queryText != null && !queryText.isBlank()) {
+                String likeValue = "%" + queryText.trim().toLowerCase() + "%";
+                predicates.add(criteriaBuilder.or(
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("purpose")), likeValue),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("destinationAddress")), likeValue),
+                        criteriaBuilder.like(criteriaBuilder.lower(root.get("employee").get("fullName")), likeValue)
+                ));
+            }
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
             }
             if (employeeId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("employee").get("id"), employeeId));
+            }
+            if (department != null && !department.isBlank()) {
+                predicates.add(criteriaBuilder.equal(
+                        criteriaBuilder.lower(root.get("employee").get("department")),
+                        department.trim().toLowerCase()
+                ));
             }
             if (dateFrom != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("plannedStartDateTime"), dateFrom));

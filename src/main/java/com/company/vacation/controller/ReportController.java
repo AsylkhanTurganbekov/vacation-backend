@@ -24,12 +24,14 @@ public class ReportController {
     private final ReportService reportService;
 
     @GetMapping("/trips")
-    public PagedResponse<TripResponse> getTripsReport(@RequestParam(required = false) BusinessTripStatus status,
+    public PagedResponse<TripResponse> getTripsReport(@RequestParam(required = false, name = "q") String queryText,
+                                                      @RequestParam(required = false) BusinessTripStatus status,
                                                       @RequestParam(required = false) Long employeeId,
+                                                      @RequestParam(required = false) String department,
                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
                                                       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
                                                       @PageableDefault(size = 20, sort = "plannedStartDateTime") Pageable pageable) {
-        return reportService.getTripsReport(status, employeeId, dateFrom, dateTo, pageable);
+        return reportService.getTripsReport(queryText, status, employeeId, department, dateFrom, dateTo, pageable);
     }
 
     @GetMapping("/trips/summary")
@@ -39,10 +41,12 @@ public class ReportController {
 
     @GetMapping("/employees/{employeeId}/trips")
     public PagedResponse<TripResponse> getEmployeeTripsReport(@PathVariable Long employeeId,
+                                                              @RequestParam(required = false, name = "q") String queryText,
                                                               @RequestParam(required = false) BusinessTripStatus status,
+                                                              @RequestParam(required = false) String department,
                                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
                                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
                                                               @PageableDefault(size = 20, sort = "plannedStartDateTime") Pageable pageable) {
-        return reportService.getEmployeeTripsReport(employeeId, status, dateFrom, dateTo, pageable);
+        return reportService.getEmployeeTripsReport(employeeId, queryText, status, department, dateFrom, dateTo, pageable);
     }
 }

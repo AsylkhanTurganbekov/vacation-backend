@@ -12,8 +12,8 @@ public interface BusinessTripService {
 
     TripResponse createTrip(CreateTripRequest request);
 
-    PagedResponse<TripResponse> getTrips(BusinessTripStatus status, Long employeeId,
-                                         LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
+    PagedResponse<TripResponse> getTrips(String queryText, BusinessTripStatus status, Long employeeId,
+                                         String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
 
     TripResponse getTrip(Long id);
 
@@ -23,8 +23,8 @@ public interface BusinessTripService {
 
     TripResponse cancelTrip(Long id);
 
-    PagedResponse<TripResponse> getEmployeeTrips(Long employeeId, BusinessTripStatus status,
-                                                 LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
+    PagedResponse<TripResponse> getEmployeeTrips(Long employeeId, String queryText, BusinessTripStatus status,
+                                                 String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
 
     TripResponse getEmployeeTrip(Long employeeId, Long tripId);
 }

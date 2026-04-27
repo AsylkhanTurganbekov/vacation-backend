@@ -25,9 +25,9 @@ public class ReportServiceImpl implements ReportService {
     private final TripEventRepository tripEventRepository;
 
     @Override
-    public PagedResponse<TripResponse> getTripsReport(BusinessTripStatus status, Long employeeId,
-                                                      LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
-        return businessTripService.getTrips(status, employeeId, dateFrom, dateTo, pageable);
+    public PagedResponse<TripResponse> getTripsReport(String queryText, BusinessTripStatus status, Long employeeId,
+                                                      String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
+        return businessTripService.getTrips(queryText, status, employeeId, department, dateFrom, dateTo, pageable);
     }
 
     @Override
@@ -46,8 +46,8 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
-    public PagedResponse<TripResponse> getEmployeeTripsReport(Long employeeId, BusinessTripStatus status,
-                                                              LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
-        return businessTripService.getEmployeeTrips(employeeId, status, dateFrom, dateTo, pageable);
+    public PagedResponse<TripResponse> getEmployeeTripsReport(Long employeeId, String queryText, BusinessTripStatus status,
+                                                              String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable) {
+        return businessTripService.getEmployeeTrips(employeeId, queryText, status, department, dateFrom, dateTo, pageable);
     }
 }

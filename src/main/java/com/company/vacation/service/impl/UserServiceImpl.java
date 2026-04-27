@@ -6,6 +6,7 @@ import com.company.vacation.dto.user.UserRequest;
 import com.company.vacation.dto.user.UserResponse;
 import com.company.vacation.dto.user.UserUpdateRequest;
 import com.company.vacation.entity.User;
+import com.company.vacation.entity.enums.Role;
 import com.company.vacation.exception.BusinessException;
 import com.company.vacation.exception.NotFoundException;
 import com.company.vacation.mapper.UserMapper;
@@ -13,8 +14,10 @@ import com.company.vacation.repository.UserRepository;
 import com.company.vacation.service.AuditLogService;
 import com.company.vacation.service.AuthContextService;
 import com.company.vacation.service.UserService;
+import com.company.vacation.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +33,9 @@ public class UserServiceImpl implements UserService {
     private final AuthContextService authContextService;
 
     @Override
-    public PagedResponse<UserResponse> getUsers(Pageable pageable) {
-        return PagedResponse.from(userRepository.findAll(pageable).map(userMapper::toResponse));
+    public PagedResponse<UserResponse> getUsers(String queryText, Role role, String department, Boolean active, Pageable pageable) {
+        Specification<User> specification = UserSpecification.filter(queryText, role, department, active);
+        return PagedResponse.from(userRepository.findAll(specification, pageable).map(userMapper::toResponse));
     }
 
     @Override

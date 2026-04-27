@@ -35,12 +35,14 @@ public class BusinessTripController {
     }
 
     @GetMapping
-    public PagedResponse<TripResponse> getTrips(@RequestParam(required = false) BusinessTripStatus status,
+    public PagedResponse<TripResponse> getTrips(@RequestParam(required = false, name = "q") String queryText,
+                                                @RequestParam(required = false) BusinessTripStatus status,
                                                 @RequestParam(required = false) Long employeeId,
+                                                @RequestParam(required = false) String department,
                                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
                                                 @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
                                                 @PageableDefault(size = 20, sort = "plannedStartDateTime") Pageable pageable) {
-        return businessTripService.getTrips(status, employeeId, dateFrom, dateTo, pageable);
+        return businessTripService.getTrips(queryText, status, employeeId, department, dateFrom, dateTo, pageable);
     }
 
     @GetMapping("/{id}")

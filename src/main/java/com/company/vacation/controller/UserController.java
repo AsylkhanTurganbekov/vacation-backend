@@ -5,6 +5,7 @@ import com.company.vacation.dto.user.UserActiveUpdateRequest;
 import com.company.vacation.dto.user.UserRequest;
 import com.company.vacation.dto.user.UserResponse;
 import com.company.vacation.dto.user.UserUpdateRequest;
+import com.company.vacation.entity.enums.Role;
 import com.company.vacation.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,12 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public PagedResponse<UserResponse> getUsers(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
-        return userService.getUsers(pageable);
+    public PagedResponse<UserResponse> getUsers(@org.springframework.web.bind.annotation.RequestParam(required = false, name = "q") String queryText,
+                                                @org.springframework.web.bind.annotation.RequestParam(required = false) Role role,
+                                                @org.springframework.web.bind.annotation.RequestParam(required = false) String department,
+                                                @org.springframework.web.bind.annotation.RequestParam(required = false) Boolean active,
+                                                @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        return userService.getUsers(queryText, role, department, active, pageable);
     }
 
     @GetMapping("/{id}")
