@@ -147,6 +147,7 @@ curl 'http://92.38.49.156:8090/api/v1/trips?page=0&size=20&sort=plannedStartDate
 Поддерживаемые query params:
 - `q`
 - `employeeId`
+- `employeeIds`
 - `department`
 - `status`
 - `dateFrom`
@@ -222,6 +223,13 @@ curl 'http://92.38.49.156:8090/api/v1/reports/trips/summary' \
 
 ```bash
 curl 'http://92.38.49.156:8090/api/v1/monitoring/map?q=astana&employeeId=2&department=Field%20Service&status=COMPLETED&dateFrom=2026-04-01T00:00:00&dateTo=2026-04-30T23:59:59' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Фильтр по нескольким сотрудникам:
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/monitoring/map?employeeIds=2&employeeIds=5&employeeIds=8' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 

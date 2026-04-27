@@ -4,6 +4,7 @@ import com.company.vacation.entity.BusinessTrip;
 import com.company.vacation.entity.enums.BusinessTripStatus;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -14,6 +15,12 @@ public final class BusinessTripSpecification {
 
     public static Specification<BusinessTrip> filter(String queryText, BusinessTripStatus status, Long employeeId,
                                                      String department, LocalDateTime dateFrom, LocalDateTime dateTo) {
+        return filter(queryText, status, employeeId != null ? List.of(employeeId) : null, department, dateFrom, dateTo);
+    }
+
+    public static Specification<BusinessTrip> filter(String queryText, BusinessTripStatus status,
+                                                     Collection<Long> employeeIds, String department,
+                                                     LocalDateTime dateFrom, LocalDateTime dateTo) {
         return (root, query, criteriaBuilder) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
             if (queryText != null && !queryText.isBlank()) {
@@ -27,8 +34,8 @@ public final class BusinessTripSpecification {
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
             }
-            if (employeeId != null) {
-                predicates.add(criteriaBuilder.equal(root.get("employee").get("id"), employeeId));
+            if (employeeIds != null && !employeeIds.isEmpty()) {
+                predicates.add(root.get("employee").get("id").in(employeeIds));
             }
             if (department != null && !department.isBlank()) {
                 predicates.add(criteriaBuilder.equal(

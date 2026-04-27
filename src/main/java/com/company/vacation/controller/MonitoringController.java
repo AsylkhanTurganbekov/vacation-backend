@@ -21,12 +21,13 @@ public class MonitoringController {
     @GetMapping("/map")
     public MonitoringMapResponse getMapData(@RequestParam(required = false, name = "q") String queryText,
                                             @RequestParam(required = false) Long employeeId,
+                                            @RequestParam(required = false) java.util.List<Long> employeeIds,
                                             @RequestParam(required = false) String department,
                                             @RequestParam(required = false) BusinessTripStatus status,
                                             @RequestParam(required = false)
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
                                             @RequestParam(required = false)
                                             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo) {
-        return monitoringService.getMapData(queryText, employeeId, department, status, dateFrom, dateTo);
+        return monitoringService.getMapData(queryText, employeeId, employeeIds, department, status, dateFrom, dateTo);
     }
 }

@@ -30,14 +30,14 @@ public class MonitoringServiceImpl implements MonitoringService {
     private final UserMapper userMapper;
 
     @Override
-    public MonitoringMapResponse getMapData(String queryText, Long employeeId, String department,
+    public MonitoringMapResponse getMapData(String queryText, Long employeeId, List<Long> employeeIds, String department,
                                             BusinessTripStatus status, LocalDateTime dateFrom, LocalDateTime dateTo) {
-        Long effectiveEmployeeId = authContextService.currentUserRole() == Role.EMPLOYEE
-                ? authContextService.currentUserId()
-                : employeeId;
+        List<Long> effectiveEmployeeIds = authContextService.currentUserRole() == Role.EMPLOYEE
+                ? List.of(authContextService.currentUserId())
+                : mergeEmployeeFilters(employeeId, employeeIds);
 
         List<BusinessTrip> trips = businessTripRepository.findAll(
-                BusinessTripSpecification.filter(queryText, status, effectiveEmployeeId, department, dateFrom, dateTo),
+                BusinessTripSpecification.filter(queryText, status, effectiveEmployeeIds, department, dateFrom, dateTo),
                 Sort.by(Sort.Direction.DESC, "plannedStartDateTime"));
 
         List<MonitoringMapPointResponse> withCoordinates = new ArrayList<>();
@@ -59,6 +59,16 @@ public class MonitoringServiceImpl implements MonitoringService {
                 .withCoordinates(withCoordinates)
                 .withoutCoordinates(withoutCoordinates)
                 .build();
+    }
+
+    private List<Long> mergeEmployeeFilters(Long employeeId, List<Long> employeeIds) {
+        if (employeeId != null) {
+            return List.of(employeeId);
+        }
+        if (employeeIds == null || employeeIds.isEmpty()) {
+            return null;
+        }
+        return employeeIds.stream().distinct().toList();
     }
 
     private MonitoringMapPointResponse toMapPoint(BusinessTrip trip, TripEvent latestEvent) {
