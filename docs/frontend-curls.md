@@ -216,7 +216,28 @@ curl 'http://92.38.49.156:8090/api/v1/trips/2/events' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
-## 17. Отметить выезд
+Теперь каждый event может возвращать:
+
+```json
+{
+  "id": 10,
+  "tripId": 2,
+  "type": "DEPARTURE",
+  "imageUrl": "/api/v1/trip-events/10/image"
+}
+```
+
+## 17. Получить фото события
+
+`ADMIN` видит фото всех событий. `EMPLOYEE` видит только фото событий своих поездок.
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/trip-events/10/image' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  --output trip-event-image.jpg
+```
+
+## 18. Отметить выезд
 
 ```bash
 curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/departure' \
@@ -232,7 +253,9 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/departure' \
   }'
 ```
 
-## 18. Отметить прибытие
+`eventTime` должен быть в прошлом или настоящем. `imageBase64` должен быть не длиннее `1000000` символов.
+
+## 19. Отметить прибытие
 
 ```bash
 curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/arrival' \
@@ -248,7 +271,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/arrival' \
   }'
 ```
 
-## 19. Отметить возврат
+## 20. Отметить возврат
 
 ```bash
 curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/return' \
@@ -264,7 +287,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/return' \
   }'
 ```
 
-## 20. Swagger
+## 21. Swagger
 
 ```text
 http://92.38.49.156:8090/swagger-ui.html

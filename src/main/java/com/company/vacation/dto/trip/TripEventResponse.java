@@ -20,4 +20,5 @@ public class TripEventResponse {
     private VerificationStatus verificationStatus;
     private String comment;
     private LocalDateTime createdAt;
+    private String imageUrl;
 }

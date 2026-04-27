@@ -54,4 +54,7 @@ public class TripEvent extends CreatedAuditEntity {
 
     @Column(length = 1000)
     private String comment;
+
+    @Column(name = "image_file_name", length = 255)
+    private String imageFileName;
 }

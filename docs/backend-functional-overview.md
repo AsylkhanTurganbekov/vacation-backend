@@ -160,6 +160,7 @@ Backend реализует систему контроля командиров�
 - время события
 - комментарий
 - статус биометрической проверки
+- фото события
 
 Бизнес-ограничения:
 - `DEPARTURE` можно только из `APPROVED`
@@ -172,6 +173,15 @@ Backend реализует систему контроля командиров�
 - после `DEPARTURE` -> `IN_PROGRESS`
 - после `ARRIVAL` -> `ARRIVED`
 - после `RETURN` -> `COMPLETED`
+
+Фото событий:
+- frontend/mobile может отправлять `imageBase64`
+- backend сохраняет фото как файл, связанный с `TripEvent`
+- в `TripEventResponse` возвращается только `imageUrl`
+- отдельный endpoint для фото:
+  - `GET /api/v1/trip-events/{eventId}/image`
+- `ADMIN` видит фото всех событий
+- `EMPLOYEE` видит фото только своих поездок
 
 ## Биометрия
 

@@ -36,6 +36,7 @@ services:
       APP_OPENAPI_LOCAL_URL: ${APP_OPENAPI_LOCAL_URL:-http://localhost:${BACKEND_EXTERNAL_PORT:-8090}}
       APP_OPENAPI_PROD_URL: ${APP_OPENAPI_PROD_URL:-}
       APP_STORAGE_AVATAR_DIR: ${APP_STORAGE_AVATAR_DIR:-/app/uploads/avatars}
+      APP_STORAGE_TRIP_EVENT_IMAGE_DIR: ${APP_STORAGE_TRIP_EVENT_IMAGE_DIR:-/app/uploads/trip-events}
       APP_BIOMETRIC_PROVIDER_NAME: ${APP_BIOMETRIC_PROVIDER_NAME:-mock-face-provider}
     depends_on:
       postgres:

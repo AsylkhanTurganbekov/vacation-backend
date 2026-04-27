@@ -18,9 +18,18 @@ import com.company.vacation.service.AuditLogService;
 import com.company.vacation.service.AuthContextService;
 import com.company.vacation.service.BiometricProvider;
 import com.company.vacation.service.TripEventService;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +44,9 @@ public class TripEventServiceImpl implements TripEventService {
     private final TripEventMapper tripEventMapper;
     private final AuthContextService authContextService;
     private final AuditLogService auditLogService;
+
+    @Value("${app.storage.trip-event-image-dir:${APP_STORAGE_TRIP_EVENT_IMAGE_DIR:/app/uploads/trip-events}}")
+    private String tripEventImageDir;
 
     @Override
     @Transactional
@@ -53,6 +65,9 @@ public class TripEventServiceImpl implements TripEventService {
         event.setEventTime(request.getEventTime());
         event.setComment(request.getComment());
         event.setVerificationStatus(VerificationStatus.PENDING);
+        if (request.getImageBase64() != null && !request.getImageBase64().isBlank()) {
+            event.setImageFileName(storeEventImage(request.getImageBase64()));
+        }
         event = tripEventRepository.save(event);
 
         persistBiometricVerification(trip, event, request);
@@ -68,6 +83,30 @@ public class TripEventServiceImpl implements TripEventService {
         return tripEventRepository.findByTrip_IdOrderByEventTimeAsc(tripId).stream()
                 .map(tripEventMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    public Resource getTripEventImage(Long eventId) {
+        TripEvent event = tripEventRepository.findWithTripAndEmployeeById(eventId)
+                .orElseThrow(() -> new com.company.vacation.exception.NotFoundException(
+                        "Trip event not found with id " + eventId));
+        ensureTripAccess(event.getTrip());
+        if (event.getImageFileName() == null || event.getImageFileName().isBlank()) {
+            throw new com.company.vacation.exception.NotFoundException(
+                    "Image not found for trip event with id " + eventId);
+        }
+
+        Path imagePath = tripEventImageStoragePath().resolve(event.getImageFileName()).normalize();
+        try {
+            Resource resource = new UrlResource(imagePath.toUri());
+            if (!resource.exists()) {
+                throw new com.company.vacation.exception.NotFoundException(
+                        "Image file not found for trip event with id " + eventId);
+            }
+            return resource;
+        } catch (MalformedURLException exception) {
+            throw new BusinessException("Failed to read trip event image");
+        }
     }
 
     private void ensureTripAccess(BusinessTrip trip) {
@@ -144,5 +183,40 @@ public class TripEventServiceImpl implements TripEventService {
                 trip.setActualReturnDateTime(eventTime);
             }
         }
+    }
+
+    private String storeEventImage(String imageBase64) {
+        try {
+            String sanitized = imageBase64;
+            String extension = ".bin";
+            int commaIndex = imageBase64.indexOf(',');
+            if (imageBase64.startsWith("data:") && commaIndex > 0) {
+                String metadata = imageBase64.substring(5, commaIndex);
+                sanitized = imageBase64.substring(commaIndex + 1);
+                String mimeType = metadata.split(";")[0];
+                extension = mimeTypeToExtension(mimeType);
+            }
+
+            byte[] imageBytes = Base64.getDecoder().decode(sanitized);
+            Files.createDirectories(tripEventImageStoragePath());
+            String fileName = UUID.randomUUID() + extension;
+            Files.write(tripEventImageStoragePath().resolve(fileName), imageBytes);
+            return fileName;
+        } catch (IllegalArgumentException | IOException exception) {
+            throw new ApiValidationException("Invalid imageBase64 payload");
+        }
+    }
+
+    private String mimeTypeToExtension(String mimeType) {
+        return switch (mimeType) {
+            case "image/jpeg", "image/jpg" -> ".jpg";
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            default -> ".bin";
+        };
+    }
+
+    private Path tripEventImageStoragePath() {
+        return Path.of(tripEventImageDir).toAbsolutePath().normalize();
     }
 }

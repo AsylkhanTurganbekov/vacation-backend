@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-add-image-file-name-to-trip-events
+      author: codex
+      changes:
+        - addColumn:
+            tableName: trip_events
+            columns:
+              - column:
+                  name: image_file_name
+                  type: varchar(255)
