@@ -80,9 +80,13 @@ public class TripEventServiceImpl implements TripEventService {
     public List<TripEventResponse> getTripEvents(Long tripId) {
         BusinessTrip trip = businessTripService.findTrip(tripId);
         ensureTripAccess(trip);
-        return tripEventRepository.findByTrip_IdOrderByEventTimeAsc(tripId).stream()
+        return findTripEventsForTrip(tripId).stream()
                 .map(tripEventMapper::toResponse)
                 .toList();
+    }
+
+    public List<TripEvent> findTripEventsForTrip(Long tripId) {
+        return tripEventRepository.findByTrip_IdOrderByEventTimeAsc(tripId);
     }
 
     @Override

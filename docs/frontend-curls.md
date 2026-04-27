@@ -170,14 +170,49 @@ curl 'http://92.38.49.156:8090/api/v1/trips/2' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
-## 13. Employee trips
+## 13. Командировочное удостоверение
+
+JSON-данные документа:
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/trips/2/certificate' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Printable HTML:
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/trips/2/certificate/html' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Основные поля:
+- `documentNumber`
+- `documentDate`
+- `employeeFullName`
+- `department`
+- `position`
+- `personnelNumber`
+- `destinationAddress`
+- `purpose`
+- `plannedStartDateTime`
+- `plannedEndDateTime`
+- `calendarDays`
+- `marks`
+
+Отметки `marks` строятся из trip events:
+- `DEPARTURE`
+- `ARRIVAL`
+- `RETURN`
+
+## 14. Employee trips
 
 ```bash
 curl 'http://92.38.49.156:8090/api/v1/employee/trips?page=0&size=20&sort=plannedStartDateTime,desc' \
   -H 'Authorization: Bearer EMPLOYEE_ACCESS_TOKEN'
 ```
 
-## 14. Summary для dashboard
+## 15. Summary для dashboard
 
 ```bash
 curl 'http://92.38.49.156:8090/api/v1/reports/trips/summary' \
@@ -203,7 +238,7 @@ curl 'http://92.38.49.156:8090/api/v1/reports/trips/summary' \
 }
 ```
 
-## 15. Карта мониторинга
+## 16. Карта мониторинга
 
 Отдельный endpoint под карту:
 - `GET /api/v1/monitoring/map`
@@ -257,14 +292,14 @@ curl 'http://92.38.49.156:8090/api/v1/monitoring/map?employeeIds=2&employeeIds=5
 }
 ```
 
-## 16. Отчет по trips
+## 17. Отчет по trips
 
 ```bash
 curl 'http://92.38.49.156:8090/api/v1/reports/trips?page=0&size=20&sort=plannedStartDateTime,desc' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
-## 17. История событий по поездке
+## 18. История событий по поездке
 
 ```bash
 curl 'http://92.38.49.156:8090/api/v1/trips/2/events' \
@@ -282,7 +317,7 @@ curl 'http://92.38.49.156:8090/api/v1/trips/2/events' \
 }
 ```
 
-## 18. Получить фото события
+## 19. Получить фото события
 
 `ADMIN` видит фото всех событий. `EMPLOYEE` видит только фото событий своих поездок.
 
@@ -292,7 +327,7 @@ curl 'http://92.38.49.156:8090/api/v1/trip-events/10/image' \
   --output trip-event-image.jpg
 ```
 
-## 19. Отметить выезд
+## 20. Отметить выезд
 
 ```bash
 curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/departure' \
@@ -310,7 +345,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/departure' \
 
 `eventTime` должен быть в прошлом или настоящем. `imageBase64` должен быть не длиннее `1000000` символов.
 
-## 20. Отметить прибытие
+## 21. Отметить прибытие
 
 ```bash
 curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/arrival' \
@@ -326,7 +361,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/arrival' \
   }'
 ```
 
-## 21. Отметить возврат
+## 22. Отметить возврат
 
 ```bash
 curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/return' \
@@ -342,7 +377,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/trips/2/events/return' \
   }'
 ```
 
-## 22. Swagger
+## 23. Swagger
 
 ```text
 http://92.38.49.156:8090/swagger-ui.html

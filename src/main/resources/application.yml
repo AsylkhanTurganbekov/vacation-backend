@@ -63,6 +63,8 @@ app:
   storage:
     avatar-dir: ${APP_STORAGE_AVATAR_DIR:/app/uploads/avatars}
     trip-event-image-dir: ${APP_STORAGE_TRIP_EVENT_IMAGE_DIR:/app/uploads/trip-events}
+  documents:
+    organization-name: ${APP_DOCUMENTS_ORGANIZATION_NAME:АО "Национальные информационные технологии"}
   biometric:
     mock-provider-name: ${APP_BIOMETRIC_PROVIDER_NAME:mock-face-provider}
 
