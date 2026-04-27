@@ -2,11 +2,15 @@ package com.company.vacation.service.impl;
 
 import com.company.vacation.dto.auth.AuthResponse;
 import com.company.vacation.dto.auth.LoginRequest;
+import com.company.vacation.dto.auth.LogoutRequest;
+import com.company.vacation.dto.auth.RefreshTokenRequest;
 import com.company.vacation.dto.auth.RegisterRequest;
 import com.company.vacation.dto.user.UserResponse;
+import com.company.vacation.entity.RefreshToken;
 import com.company.vacation.entity.User;
 import com.company.vacation.exception.BusinessException;
 import com.company.vacation.mapper.UserMapper;
+import com.company.vacation.repository.RefreshTokenRepository;
 import com.company.vacation.repository.UserRepository;
 import com.company.vacation.security.AppUserDetails;
 import com.company.vacation.security.JwtTokenProvider;
@@ -27,6 +31,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserMapper userMapper;
@@ -34,18 +39,14 @@ public class AuthServiceImpl implements AuthService {
     private final AuditLogService auditLogService;
 
     @Override
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         AppUserDetails principal = (AppUserDetails) authentication.getPrincipal();
         User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new BusinessException("Authenticated user not found"));
-        UserResponse userResponse = userMapper.toResponse(user);
-        return AuthResponse.builder()
-                .accessToken(jwtTokenProvider.generateToken(principal))
-                .tokenType("Bearer")
-                .user(userResponse)
-                .build();
+        return issueAuthResponse(user);
     }
 
     @Override
@@ -66,6 +67,12 @@ public class AuthServiceImpl implements AuthService {
         user = userRepository.save(user);
         auditLogService.log("USER", user.getId(), "REGISTERED", user.getId(), user.getEmail());
 
+        return issueAuthResponse(user);
+    }
+
+    @Override
+    public AuthResponse me() {
+        User user = authContextService.currentUser();
         AppUserDetails principal = new AppUserDetails(user);
         return AuthResponse.builder()
                 .accessToken(jwtTokenProvider.generateToken(principal))
@@ -75,11 +82,47 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse me() {
-        User user = authContextService.currentUser();
+    @Transactional
+    public AuthResponse refresh(RefreshTokenRequest request) {
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+                .orElseThrow(() -> new BusinessException("Invalid refresh token"));
+        if (refreshToken.isRevoked() || refreshToken.isExpired()) {
+            throw new BusinessException("Refresh token is expired or revoked");
+        }
+
+        User user = refreshToken.getUser();
+        if (!user.isActive()) {
+            throw new BusinessException("User account is inactive");
+        }
+
+        refreshToken.setRevokedAt(java.time.LocalDateTime.now());
+        return issueAuthResponse(user);
+    }
+
+    @Override
+    @Transactional
+    public void logout(LogoutRequest request) {
+        refreshTokenRepository.findByToken(request.getRefreshToken()).ifPresent(token -> {
+            if (!token.isRevoked()) {
+                token.setRevokedAt(java.time.LocalDateTime.now());
+            }
+        });
+    }
+
+    private AuthResponse issueAuthResponse(User user) {
         AppUserDetails principal = new AppUserDetails(user);
+        String refreshTokenValue = jwtTokenProvider.generateRefreshToken();
+
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setUser(user);
+        refreshToken.setToken(refreshTokenValue);
+        refreshToken.setExpiresAt(java.time.LocalDateTime.now()
+                .plus(java.time.Duration.ofMillis(jwtTokenProvider.getRefreshExpirationMs())));
+        refreshTokenRepository.save(refreshToken);
+
         return AuthResponse.builder()
                 .accessToken(jwtTokenProvider.generateToken(principal))
+                .refreshToken(refreshTokenValue)
                 .tokenType("Bearer")
                 .user(userMapper.toResponse(user))
                 .build();

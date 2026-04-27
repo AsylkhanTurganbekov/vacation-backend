@@ -59,6 +59,7 @@ app:
   jwt:
     secret: ${APP_JWT_SECRET:0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF}
     expiration: ${APP_JWT_EXPIRATION:86400000}
+    refresh-expiration: ${APP_JWT_REFRESH_EXPIRATION:2592000000}
   biometric:
     mock-provider-name: ${APP_BIOMETRIC_PROVIDER_NAME:mock-face-provider}
 

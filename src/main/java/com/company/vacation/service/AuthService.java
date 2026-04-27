@@ -2,6 +2,8 @@ package com.company.vacation.service;
 
 import com.company.vacation.dto.auth.AuthResponse;
 import com.company.vacation.dto.auth.LoginRequest;
+import com.company.vacation.dto.auth.LogoutRequest;
+import com.company.vacation.dto.auth.RefreshTokenRequest;
 import com.company.vacation.dto.auth.RegisterRequest;
 
 public interface AuthService {
@@ -11,4 +13,8 @@ public interface AuthService {
     AuthResponse register(RegisterRequest request);
 
     AuthResponse me();
+
+    AuthResponse refresh(RefreshTokenRequest request);
+
+    void logout(LogoutRequest request);
 }
