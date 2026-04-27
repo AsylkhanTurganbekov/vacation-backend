@@ -186,6 +186,28 @@ curl 'http://92.38.49.156:8090/api/v1/trips/2/certificate/html' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
+PDF-документ:
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/trips/2/certificate/pdf' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -o trip-certificate-2.pdf
+```
+
+Проверка headers:
+
+```bash
+curl -I 'http://92.38.49.156:8090/api/v1/trips/2/certificate/pdf' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Ожидаемые headers:
+
+```text
+Content-Type: application/pdf
+Content-Disposition: inline; filename="trip-certificate-2.pdf"
+```
+
 Основные поля:
 - `documentNumber`
 - `documentDate`
@@ -204,6 +226,11 @@ curl 'http://92.38.49.156:8090/api/v1/trips/2/certificate/html' \
 - `DEPARTURE`
 - `ARRIVAL`
 - `RETURN`
+
+Что использовать на клиентах:
+- web preview: `GET /api/v1/trips/{tripId}/certificate/html`
+- web/mobile download/print: `GET /api/v1/trips/{tripId}/certificate/pdf`
+- если нужен свой UI документа: `GET /api/v1/trips/{tripId}/certificate`
 
 ## 14. Employee trips
 

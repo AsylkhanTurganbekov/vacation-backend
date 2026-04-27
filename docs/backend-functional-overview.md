@@ -115,6 +115,7 @@ Backend реализует систему контроля командиров�
 - cancel
 - получить данные командировочного удостоверения
 - получить printable HTML командировочного удостоверения
+- получить PDF командировочного удостоверения
 
 ## Фильтрация командировок
 
@@ -154,6 +155,7 @@ Backend реализует систему контроля командиров�
 Есть отдельная логика для документа по командировке:
 - `GET /api/v1/trips/{tripId}/certificate`
 - `GET /api/v1/trips/{tripId}/certificate/html`
+- `GET /api/v1/trips/{tripId}/certificate/pdf`
 
 Что отдает backend:
 - номер документа
@@ -176,6 +178,18 @@ Backend реализует систему контроля командиров�
 Доступ:
 - `ADMIN` может получать удостоверение по любой поездке
 - `EMPLOYEE` только по своей поездке
+
+Форматы выдачи:
+- `certificate` -> JSON DTO для собственного UI
+- `certificate/html` -> готовый HTML, рендеренный через Thymeleaf
+- `certificate/pdf` -> готовый PDF
+
+PDF-генерация:
+- используется `openhtmltopdf-pdfbox`
+- PDF строится из отдельного PDF-friendly шаблона
+- response headers:
+  - `Content-Type: application/pdf`
+  - `Content-Disposition: inline; filename="trip-certificate-{tripId}.pdf"`
 
 ## События поездки
 
