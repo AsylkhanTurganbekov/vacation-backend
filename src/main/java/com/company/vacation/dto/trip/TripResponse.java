@@ -11,6 +11,7 @@ public class TripResponse {
     private Long id;
     private Long employeeId;
     private String employeeName;
+    private String employeeAvatarUrl;
     private String purpose;
     private String destinationAddress;
     private LocalDateTime plannedStartDateTime;
