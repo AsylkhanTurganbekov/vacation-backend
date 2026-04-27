@@ -35,12 +35,15 @@ services:
       APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-*}
       APP_OPENAPI_LOCAL_URL: ${APP_OPENAPI_LOCAL_URL:-http://localhost:${BACKEND_EXTERNAL_PORT:-8090}}
       APP_OPENAPI_PROD_URL: ${APP_OPENAPI_PROD_URL:-}
+      APP_STORAGE_AVATAR_DIR: ${APP_STORAGE_AVATAR_DIR:-/app/uploads/avatars}
       APP_BIOMETRIC_PROVIDER_NAME: ${APP_BIOMETRIC_PROVIDER_NAME:-mock-face-provider}
     depends_on:
       postgres:
         condition: service_healthy
     ports:
       - "${BACKEND_EXTERNAL_PORT:-8090}:8081"
+    volumes:
+      - avatar_uploads:/app/uploads
 
   nginx:
     image: nginx:1.27-alpine
@@ -57,3 +60,4 @@ services:
 
 volumes:
   postgres_data:
+  avatar_uploads:

@@ -14,6 +14,7 @@ public class UserResponse {
     private Role role;
     private String department;
     private String position;
+    private String avatarUrl;
     private boolean active;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -5,3 +5,5 @@ target/
 *.log
 .tools/
 .env
+uploads/
+vacation-backend-deploy.tar.gz

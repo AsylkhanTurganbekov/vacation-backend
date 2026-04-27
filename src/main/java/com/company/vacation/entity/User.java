@@ -40,6 +40,9 @@ public class User extends BaseEntity {
     @Column(name = "job_position")
     private String position;
 
+    @Column(name = "avatar_file_name")
+    private String avatarFileName;
+
     @Column(nullable = false)
     private boolean active = true;
 }

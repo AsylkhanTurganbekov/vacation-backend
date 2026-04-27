@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/migrations/006-seed-data.yaml
   - include:
       file: db/changelog/migrations/007-create-refresh-token-table.yaml
+  - include:
+      file: db/changelog/migrations/008-add-avatar-file-name-to-users.yaml
