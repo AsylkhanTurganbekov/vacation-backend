@@ -11,6 +11,7 @@ import com.company.vacation.service.AuthContextService;
 import com.company.vacation.service.TripCertificateService;
 import com.company.vacation.service.TripEventService;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -67,6 +68,7 @@ public class TripCertificateServiceImpl implements TripCertificateService {
         TripCertificateResponse certificate = getCertificate(tripId);
         Context context = new Context();
         context.setVariable("certificate", certificate);
+        context.setVariable("markRows", buildMarkRows(certificate.getMarks()));
         return templateEngine.process("trip-certificate", context);
     }
 
@@ -96,5 +98,26 @@ public class TripCertificateServiceImpl implements TripCertificateService {
 
     private String buildDocumentNumber(BusinessTrip trip) {
         return "KU-%d-%d".formatted(trip.getCreatedAt().getYear(), trip.getId());
+    }
+
+    private List<MarkRow> buildMarkRows(List<TripCertificateMarkResponse> marks) {
+        List<TripCertificateMarkResponse> departures = marks.stream()
+                .filter(mark -> mark.getType() == TripEventType.DEPARTURE)
+                .toList();
+        List<TripCertificateMarkResponse> arrivals = marks.stream()
+                .filter(mark -> mark.getType() != TripEventType.DEPARTURE)
+                .toList();
+
+        int rowsCount = Math.max(4, Math.max(departures.size(), arrivals.size()));
+        List<MarkRow> rows = new ArrayList<>(rowsCount);
+        for (int index = 0; index < rowsCount; index++) {
+            TripCertificateMarkResponse departure = index < departures.size() ? departures.get(index) : null;
+            TripCertificateMarkResponse arrival = index < arrivals.size() ? arrivals.get(index) : null;
+            rows.add(new MarkRow(departure, arrival));
+        }
+        return rows;
+    }
+
+    public record MarkRow(TripCertificateMarkResponse departure, TripCertificateMarkResponse arrival) {
     }
 }

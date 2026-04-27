@@ -4,58 +4,296 @@
     <meta charset="UTF-8">
     <title>Командировочное удостоверение</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 32px; color: #111; }
-        h1, h2 { margin: 0 0 12px; }
-        .header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; gap: 24px; }
-        .meta { border:1px solid #222; padding:12px; min-width:260px; }
-        .field { margin: 8px 0; }
-        .label { font-weight:700; }
-        table { width:100%; border-collapse:collapse; margin-top:16px; }
-        th, td { border:1px solid #444; padding:8px; text-align:left; vertical-align:top; }
-        .muted { color:#555; font-size:12px; }
+        @page { size: A4 portrait; margin: 10mm; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: "Times New Roman", serif;
+            font-size: 13px;
+            line-height: 1.15;
+            margin: 0;
+            color: #111;
+        }
+        .page {
+            width: 190mm;
+            margin: 0 auto;
+            padding: 8mm 8mm 6mm;
+        }
+        .org-title {
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .org-subtitle {
+            text-align: center;
+            font-size: 10px;
+            margin-bottom: 8px;
+        }
+        .headline-row {
+            display: grid;
+            grid-template-columns: 1fr 70mm;
+            align-items: end;
+            gap: 10mm;
+            margin-bottom: 10px;
+        }
+        .headline {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            padding-bottom: 6px;
+        }
+        .meta-grid {
+            border: 1px solid #222;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+        .meta-cell {
+            border-right: 1px solid #222;
+            min-height: 22mm;
+        }
+        .meta-cell:last-child {
+            border-right: none;
+        }
+        .meta-label {
+            font-size: 11px;
+            text-align: center;
+            padding: 2mm 1mm;
+            border-bottom: 1px solid #222;
+        }
+        .meta-value {
+            text-align: center;
+            padding-top: 5mm;
+            font-size: 13px;
+        }
+        .personnel-row {
+            display: grid;
+            grid-template-columns: 1fr 44mm;
+            gap: 10mm;
+            margin-bottom: 6px;
+        }
+        .field-block {
+            margin-bottom: 5px;
+        }
+        .field-label {
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .line {
+            border-bottom: 1px solid #111;
+            min-height: 16px;
+            padding: 0 4px 1px;
+            display: flex;
+            align-items: flex-end;
+        }
+        .line.center { justify-content: center; text-align: center; }
+        .hint {
+            text-align: center;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+        .trip-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6mm;
+            align-items: end;
+        }
+        .inline-grid {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto auto 1fr auto;
+            gap: 4px;
+            align-items: end;
+            margin: 6px 0;
+        }
+        .passport-note {
+            margin: 6px 0 10px;
+        }
+        .leader-grid {
+            display: grid;
+            grid-template-columns: 34mm 1fr 34mm 28mm 38mm;
+            gap: 4px;
+            align-items: end;
+            margin-bottom: 4px;
+        }
+        .marks-title {
+            text-align: center;
+            font-size: 11px;
+            margin: 8px 0 8px;
+        }
+        .marks-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10mm;
+            margin-bottom: 8mm;
+        }
+        .mark-col .field-label {
+            font-weight: 400;
+        }
+        .quote-row {
+            display: grid;
+            grid-template-columns: 8mm 10mm 1fr 12mm auto;
+            gap: 3px;
+            align-items: end;
+            margin: 4px 0;
+        }
+        .signature-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8mm;
+            margin-top: 10px;
+        }
+        .stamp {
+            margin-top: 4px;
+            font-size: 15px;
+        }
     </style>
 </head>
 <body>
-<div class="header">
-    <div>
-        <div class="muted" th:text="${certificate.organizationName}"></div>
-        <h1>Командировочное удостоверение</h1>
+<div class="page">
+    <div class="org-title" th:text="${certificate.organizationName}"></div>
+    <div class="org-subtitle">наименование организации</div>
+
+    <div class="headline-row">
+        <div class="headline">КОМАНДИРОВОЧНОЕ УДОСТОВЕРЕНИЕ</div>
+        <div class="meta-grid">
+            <div class="meta-cell">
+                <div class="meta-label">Номер документа</div>
+                <div class="meta-value" th:text="${certificate.documentNumber}"></div>
+            </div>
+            <div class="meta-cell">
+                <div class="meta-label">Дата составления</div>
+                <div class="meta-value" th:text="${certificate.documentDate}"></div>
+            </div>
+        </div>
     </div>
-    <div class="meta">
-        <div><span class="label">Номер документа:</span> <span th:text="${certificate.documentNumber}"></span></div>
-        <div><span class="label">Дата составления:</span> <span th:text="${certificate.documentDate}"></span></div>
+
+    <div class="personnel-row">
+        <div class="field-block">
+            <div class="field-label">Работник</div>
+            <div class="line center" th:text="${certificate.employeeFullName}"></div>
+            <div class="hint">фамилия, имя, отчество</div>
+        </div>
+        <div class="field-block">
+            <div class="field-label">&nbsp;</div>
+            <div class="line center" th:text="${certificate.personnelNumber}"></div>
+            <div class="hint">Табельный номер</div>
+        </div>
+    </div>
+
+    <div class="field-block">
+        <div class="line center" th:text="${certificate.department}"></div>
+        <div class="hint">наименование структурного подразделения</div>
+    </div>
+
+    <div class="field-block">
+        <div class="line center" th:text="${certificate.position}"></div>
+        <div class="hint">должность (специальность, профессия)</div>
+    </div>
+
+    <div class="trip-row">
+        <div class="field-block">
+            <div class="field-label">командируется в</div>
+        </div>
+        <div class="field-block">
+            <div class="line center" th:text="${certificate.destinationAddress}"></div>
+            <div class="hint">место назначения (страна, город, организация)</div>
+        </div>
+    </div>
+
+    <div class="inline-grid">
+        <span>для</span>
+        <div class="line" th:text="${certificate.purpose}"></div>
+        <span>на</span>
+        <div class="line center" style="width:18mm;" th:text="${certificate.calendarDays}"></div>
+        <span>календарных дней</span>
+        <span style="font-size:11px;">(не считая времени нахождения в пути)</span>
+    </div>
+
+    <div class="inline-grid" style="grid-template-columns: auto 18mm auto 10mm auto 18mm auto;">
+        <span>с</span>
+        <div class="line center" th:text="${#temporals.format(certificate.plannedStartDateTime, 'dd.MM.yyyy')}"></div>
+        <span>по</span>
+        <div class="line center" th:text="${#temporals.format(certificate.plannedEndDateTime, 'dd.MM.yyyy')}"></div>
+        <span>&nbsp;</span>
+    </div>
+
+    <div class="passport-note">
+        Действительно по предъявлении паспорта или заменяющего его документа
+        <div class="line center" style="margin-top:4px;"></div>
+        <div class="hint">наименование, номер</div>
+    </div>
+
+    <div class="leader-grid">
+        <div class="field-label">Руководитель организации</div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+    </div>
+    <div class="leader-grid" style="grid-template-columns: 34mm 1fr 34mm 28mm 38mm;">
+        <div></div>
+        <div class="hint">должность</div>
+        <div class="hint">личная подпись</div>
+        <div></div>
+        <div class="hint">расшифровка подписи</div>
+    </div>
+
+    <div class="marks-title">
+        Отметки о выбытии в командировку, прибытии в пункты назначения, выбытии из них и прибытии в место постоянной работы:
+    </div>
+
+    <div class="marks-row" th:each="row : ${markRows}">
+        <div class="mark-col">
+            <div class="field-label">Выбыл из</div>
+            <div class="line" th:text="${row.departure != null ? row.departure.place : ''}"></div>
+            <div class="quote-row">
+                <span>"</span>
+                <div class="line center" th:text="${row.departure != null ? #temporals.format(row.departure.eventTime, 'dd') : ''}"></div>
+                <span>"</span>
+                <div class="line center" th:text="${row.departure != null ? #temporals.format(row.departure.eventTime, 'MM') : ''}"></div>
+                <span>20__ года</span>
+            </div>
+            <div class="signature-grid">
+                <div>
+                    <div class="line"></div>
+                    <div class="hint">должность</div>
+                </div>
+                <div>
+                    <div class="line"></div>
+                    <div class="hint">личная подпись</div>
+                </div>
+            </div>
+            <div class="line center" style="margin-top:4px;"></div>
+            <div class="hint">расшифровка подписи</div>
+            <div class="stamp">М.П.</div>
+        </div>
+
+        <div class="mark-col">
+            <div class="field-label">Прибыл в</div>
+            <div class="line" th:text="${row.arrival != null ? row.arrival.place : ''}"></div>
+            <div class="quote-row">
+                <span>"</span>
+                <div class="line center" th:text="${row.arrival != null ? #temporals.format(row.arrival.eventTime, 'dd') : ''}"></div>
+                <span>"</span>
+                <div class="line center" th:text="${row.arrival != null ? #temporals.format(row.arrival.eventTime, 'MM') : ''}"></div>
+                <span>20__ года</span>
+            </div>
+            <div class="signature-grid">
+                <div>
+                    <div class="line"></div>
+                    <div class="hint">должность</div>
+                </div>
+                <div>
+                    <div class="line"></div>
+                    <div class="hint">личная подпись</div>
+                </div>
+            </div>
+            <div class="line center" style="margin-top:4px;"></div>
+            <div class="hint">расшифровка подписи</div>
+            <div class="stamp">М.П.</div>
+        </div>
     </div>
 </div>
-
-<div class="field"><span class="label">Работник:</span> <span th:text="${certificate.employeeFullName}"></span></div>
-<div class="field"><span class="label">Подразделение:</span> <span th:text="${certificate.department}"></span></div>
-<div class="field"><span class="label">Должность:</span> <span th:text="${certificate.position}"></span></div>
-<div class="field"><span class="label">Табельный номер:</span> <span th:text="${certificate.personnelNumber}"></span></div>
-<div class="field"><span class="label">Командируется в:</span> <span th:text="${certificate.destinationAddress}"></span></div>
-<div class="field"><span class="label">Цель:</span> <span th:text="${certificate.purpose}"></span></div>
-<div class="field">
-    <span class="label">Период:</span>
-    с <span th:text="${certificate.plannedStartDateTime}"></span>
-    по <span th:text="${certificate.plannedEndDateTime}"></span>
-</div>
-<div class="field"><span class="label">Календарных дней:</span> <span th:text="${certificate.calendarDays}"></span></div>
-
-<h2>Отметки по поездке</h2>
-<table>
-    <thead>
-    <tr>
-        <th>Тип</th>
-        <th>Место</th>
-        <th>Дата и время</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="mark : ${certificate.marks}">
-        <td th:text="${mark.label}"></td>
-        <td th:text="${mark.place}"></td>
-        <td th:text="${mark.eventTime}"></td>
-    </tr>
-    </tbody>
-</table>
 </body>
 </html>
