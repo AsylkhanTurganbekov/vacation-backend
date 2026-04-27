@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BusinessTripServiceImpl implements BusinessTripService {
 
     private final BusinessTripRepository businessTripRepository;
