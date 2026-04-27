@@ -224,6 +224,7 @@ Summary сейчас отдает:
 - фильтр-панель по trips
 - сотрудники dropdown
 - summary-карточки
+- отдельный map endpoint для monitoring dashboard
 - список поездок
 - история событий по trip
 
@@ -233,10 +234,19 @@ Summary сейчас отдает:
 
 Пока нет отдельных специализированных endpoint'ов для:
 - live monitoring feed
-- map markers / aggregated map view
 - блока "что требует внимания"
 - средней длительности / среднего пути как отдельной аналитики
 - списка уникальных departments отдельным endpoint'ом
+
+Для карты есть отдельный endpoint:
+- `GET /api/v1/monitoring/map`
+
+Он:
+- возвращает trips в формате `withCoordinates / withoutCoordinates`
+- берет координаты из последнего `TripEvent`
+- возвращает детальный текущий адрес (`currentAddress`)
+- возвращает `employeeAvatarUrl`
+- не перегружает обычный `GET /api/v1/trips`
 
 ## Инфраструктура и деплой
 

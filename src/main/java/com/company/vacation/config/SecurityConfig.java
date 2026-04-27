@@ -69,6 +69,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/me").authenticated()
                         .requestMatchers("/api/v1/trips/*/events/**").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers(HttpMethod.GET, "/api/v1/trips/*/events").hasAnyRole("ADMIN", "EMPLOYEE")
+                        .requestMatchers("/api/v1/monitoring/**").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers("/api/v1/biometric/**").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers("/api/v1/trips/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/users/**", "/api/v1/reports/**").hasRole("ADMIN")

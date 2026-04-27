@@ -1,9 +1,11 @@
 package com.company.vacation.repository;
 
 import com.company.vacation.entity.BusinessTrip;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -14,6 +16,10 @@ public interface BusinessTripRepository extends JpaRepository<BusinessTrip, Long
     @Override
     @EntityGraph(attributePaths = "employee")
     Page<BusinessTrip> findAll(Specification<BusinessTrip> specification, Pageable pageable);
+
+    @Override
+    @EntityGraph(attributePaths = "employee")
+    List<BusinessTrip> findAll(Specification<BusinessTrip> specification, Sort sort);
 
     @Override
     @EntityGraph(attributePaths = "employee")

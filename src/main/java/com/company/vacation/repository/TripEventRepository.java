@@ -19,5 +19,8 @@ public interface TripEventRepository extends JpaRepository<TripEvent, Long> {
     @EntityGraph(attributePaths = "trip.employee")
     Optional<TripEvent> findWithTripAndEmployeeById(Long id);
 
+    @EntityGraph(attributePaths = "trip.employee")
+    Optional<TripEvent> findTopByTrip_IdOrderByEventTimeDescCreatedAtDesc(Long tripId);
+
     long countByVerificationStatus(com.company.vacation.entity.enums.VerificationStatus verificationStatus);
 }
