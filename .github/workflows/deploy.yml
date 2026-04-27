@@ -61,6 +61,7 @@ jobs:
       - name: Copy archive to server
         run: |
           scp -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
             -P "${{ secrets.SERVER_PORT }}" \
             vacation-backend-deploy.tar.gz \
             "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:/tmp/vacation-backend-deploy.tar.gz"
@@ -68,12 +69,14 @@ jobs:
       - name: Deploy over SSH
         run: |
           ssh -i ~/.ssh/deploy_key \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=15 \
+            -o ServerAliveCountMax=4 \
             -p "${{ secrets.SERVER_PORT }}" \
-            "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" <<'EOF'
-          set -e
-          mkdir -p /var/www/vacation-backend
-          tar -xzf /tmp/vacation-backend-deploy.tar.gz -C /var/www/vacation-backend
-          find /var/www/vacation-backend -name '._*' -delete || true
-          cd /var/www/vacation-backend
-          docker compose up --build -d
-          EOF
+            "${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}" \
+            "set -e; \
+            mkdir -p /var/www/vacation-backend; \
+            tar -xzf /tmp/vacation-backend-deploy.tar.gz -C /var/www/vacation-backend; \
+            find /var/www/vacation-backend -name '._*' -delete || true; \
+            cd /var/www/vacation-backend; \
+            docker compose up --build -d"
