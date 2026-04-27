@@ -41,6 +41,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
+        userRepository.findByEmailIgnoreCase(request.getEmail()).ifPresent(user -> {
+            if (!user.isActive()) {
+                throw new BusinessException("User account is inactive");
+            }
+        });
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
         AppUserDetails principal = (AppUserDetails) authentication.getPrincipal();
