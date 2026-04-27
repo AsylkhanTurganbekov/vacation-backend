@@ -7,4 +7,6 @@ public interface TripCertificateService {
     TripCertificateResponse getCertificate(Long tripId);
 
     String renderCertificateHtml(Long tripId);
+
+    String renderCertificatePdfHtml(Long tripId);
 }

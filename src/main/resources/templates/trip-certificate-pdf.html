@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Командировочное удостоверение</title>
+    <style>
+        @page { size: A4 portrait; margin: 10mm; }
+        body {
+            font-family: "Times New Roman", serif;
+            font-size: 12px;
+            color: #111;
+            margin: 0;
+        }
+        .page {
+            width: 100%;
+        }
+        .center { text-align: center; }
+        .bold { font-weight: 700; }
+        .small { font-size: 10px; }
+        .title {
+            font-size: 17px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 8px 0 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .meta-table td,
+        .meta-table th,
+        .marks-table td,
+        .marks-table th {
+            border: 1px solid #222;
+        }
+        .meta-table td {
+            height: 26px;
+            padding: 4px 6px;
+            vertical-align: bottom;
+        }
+        .line-box {
+            border-bottom: 1px solid #111;
+            min-height: 18px;
+            padding: 0 4px 2px;
+        }
+        .line-box.center {
+            text-align: center;
+        }
+        .field-row {
+            margin-bottom: 6px;
+        }
+        .spacer-8 { height: 8px; }
+        .spacer-10 { height: 10px; }
+        .leader-table td {
+            padding: 2px 4px;
+            vertical-align: bottom;
+        }
+        .marks-table td {
+            padding: 4px;
+            vertical-align: top;
+            width: 50%;
+        }
+        .section-label {
+            margin-bottom: 3px;
+        }
+        .quote-table td {
+            border: none;
+            padding: 0 2px 0 0;
+            vertical-align: bottom;
+        }
+        .signature-table td {
+            border: none;
+            width: 50%;
+            padding: 0 6px 0 0;
+            vertical-align: bottom;
+        }
+        .stamp {
+            margin-top: 4px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <div class="center bold" th:text="${certificate.organizationName}"></div>
+    <div class="center small">наименование организации</div>
+
+    <table style="margin-top: 8px;">
+        <tr>
+            <td class="center title" style="border:none;">КОМАНДИРОВОЧНОЕ УДОСТОВЕРЕНИЕ</td>
+            <td style="width: 70mm; border:none;">
+                <table class="meta-table">
+                    <tr>
+                        <td class="center small">Номер документа</td>
+                        <td class="center small">Дата составления</td>
+                    </tr>
+                    <tr>
+                        <td class="center" th:text="${certificate.documentNumber}"></td>
+                        <td class="center" th:text="${certificate.documentDate}"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+
+    <table style="margin-bottom: 4px;">
+        <tr>
+            <td style="border:none; padding-right: 10px;">
+                <div class="bold">Работник</div>
+                <div class="line-box center" th:text="${certificate.employeeFullName}"></div>
+                <div class="center small">фамилия, имя, отчество</div>
+            </td>
+            <td style="width: 45mm; border:none;">
+                <div>&nbsp;</div>
+                <div class="line-box center" th:text="${certificate.personnelNumber}"></div>
+                <div class="center small">Табельный номер</div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="field-row">
+        <div class="line-box center" th:text="${certificate.department}"></div>
+        <div class="center small">наименование структурного подразделения</div>
+    </div>
+
+    <div class="field-row">
+        <div class="line-box center" th:text="${certificate.position}"></div>
+        <div class="center small">должность (специальность, профессия)</div>
+    </div>
+
+    <table style="margin-bottom: 4px;">
+        <tr>
+            <td style="width: 35mm; border:none; vertical-align: bottom;">командируется в</td>
+            <td style="border:none;">
+                <div class="line-box center" th:text="${certificate.destinationAddress}"></div>
+                <div class="center small">место назначения (страна, город, организация)</div>
+            </td>
+        </tr>
+    </table>
+
+    <table style="margin-bottom: 4px;">
+        <tr>
+            <td style="width: 18mm; border:none;">для</td>
+            <td style="border:none;">
+                <div class="line-box" th:text="${certificate.purpose}"></div>
+            </td>
+            <td style="width: 10mm; border:none;">на</td>
+            <td style="width: 18mm; border:none;">
+                <div class="line-box center" th:text="${certificate.calendarDays}"></div>
+            </td>
+            <td style="border:none;">календарных дней (не считая времени нахождения в пути)</td>
+        </tr>
+    </table>
+
+    <table style="margin-bottom: 4px;">
+        <tr>
+            <td style="width: 8mm; border:none;">с</td>
+            <td style="width: 32mm; border:none;">
+                <div class="line-box center" th:text="${#temporals.format(certificate.plannedStartDateTime, 'dd.MM.yyyy')}"></div>
+            </td>
+            <td style="width: 10mm; border:none;">по</td>
+            <td style="width: 32mm; border:none;">
+                <div class="line-box center" th:text="${#temporals.format(certificate.plannedEndDateTime, 'dd.MM.yyyy')}"></div>
+            </td>
+            <td style="border:none;">2026 г.</td>
+        </tr>
+    </table>
+
+    <div style="margin-bottom: 6px;">
+        Действительно по предъявлении паспорта или заменяющего его документа
+        <div class="line-box center" style="margin-top: 4px;"></div>
+        <div class="center small">наименование, номер</div>
+    </div>
+
+    <table class="leader-table" style="margin-bottom: 8px;">
+        <tr>
+            <td style="width: 40mm;" class="bold">Руководитель организации</td>
+            <td><div class="line-box"></div><div class="center small">должность</div></td>
+            <td style="width: 34mm;"><div class="line-box"></div><div class="center small">личная подпись</div></td>
+            <td style="width: 38mm;"><div class="line-box"></div><div class="center small">расшифровка подписи</div></td>
+        </tr>
+    </table>
+
+    <div class="center small" style="margin-bottom: 8px;">
+        Отметки о выбытии в командировку, прибытии в пункты назначения, выбытии из них и прибытии в место постоянной работы:
+    </div>
+
+    <table class="marks-table">
+        <tr th:each="row : ${markRows}">
+            <td>
+                <div class="section-label">Выбыл из</div>
+                <div class="line-box" th:text="${row.departure != null ? row.departure.place : ''}"></div>
+                <table class="quote-table" style="width: 100%; margin-top: 4px;">
+                    <tr>
+                        <td style="width: 5mm;">"</td>
+                        <td style="width: 10mm;"><div class="line-box center" th:text="${row.departure != null ? #temporals.format(row.departure.eventTime, 'dd') : ''}"></div></td>
+                        <td style="width: 5mm;">"</td>
+                        <td style="width: 10mm;"><div class="line-box center" th:text="${row.departure != null ? #temporals.format(row.departure.eventTime, 'MM') : ''}"></div></td>
+                        <td>20__ года</td>
+                    </tr>
+                </table>
+                <table class="signature-table" style="width: 100%; margin-top: 6px;">
+                    <tr>
+                        <td><div class="line-box"></div><div class="center small">должность</div></td>
+                        <td><div class="line-box"></div><div class="center small">личная подпись</div></td>
+                    </tr>
+                </table>
+                <div class="line-box center" style="margin-top: 4px;"></div>
+                <div class="center small">расшифровка подписи</div>
+                <div class="stamp">М.П.</div>
+            </td>
+            <td>
+                <div class="section-label">Прибыл в</div>
+                <div class="line-box" th:text="${row.arrival != null ? row.arrival.place : ''}"></div>
+                <table class="quote-table" style="width: 100%; margin-top: 4px;">
+                    <tr>
+                        <td style="width: 5mm;">"</td>
+                        <td style="width: 10mm;"><div class="line-box center" th:text="${row.arrival != null ? #temporals.format(row.arrival.eventTime, 'dd') : ''}"></div></td>
+                        <td style="width: 5mm;">"</td>
+                        <td style="width: 10mm;"><div class="line-box center" th:text="${row.arrival != null ? #temporals.format(row.arrival.eventTime, 'MM') : ''}"></div></td>
+                        <td>20__ года</td>
+                    </tr>
+                </table>
+                <table class="signature-table" style="width: 100%; margin-top: 6px;">
+                    <tr>
+                        <td><div class="line-box"></div><div class="center small">должность</div></td>
+                        <td><div class="line-box"></div><div class="center small">личная подпись</div></td>
+                    </tr>
+                </table>
+                <div class="line-box center" style="margin-top: 4px;"></div>
+                <div class="center small">расшифровка подписи</div>
+                <div class="stamp">М.П.</div>
+            </td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

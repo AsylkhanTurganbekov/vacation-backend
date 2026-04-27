@@ -16,7 +16,7 @@ public class TripCertificatePdfServiceImpl implements TripCertificatePdfService 
 
     @Override
     public byte[] generatePdf(Long tripId) {
-        String html = tripCertificateService.renderCertificateHtml(tripId);
+        String html = tripCertificateService.renderCertificatePdfHtml(tripId);
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();

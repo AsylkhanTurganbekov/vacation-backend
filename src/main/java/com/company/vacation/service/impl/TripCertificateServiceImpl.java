@@ -66,10 +66,13 @@ public class TripCertificateServiceImpl implements TripCertificateService {
     @Override
     public String renderCertificateHtml(Long tripId) {
         TripCertificateResponse certificate = getCertificate(tripId);
-        Context context = new Context();
-        context.setVariable("certificate", certificate);
-        context.setVariable("markRows", buildMarkRows(certificate.getMarks()));
-        return templateEngine.process("trip-certificate", context);
+        return templateEngine.process("trip-certificate", buildTemplateContext(certificate));
+    }
+
+    @Override
+    public String renderCertificatePdfHtml(Long tripId) {
+        TripCertificateResponse certificate = getCertificate(tripId);
+        return templateEngine.process("trip-certificate-pdf", buildTemplateContext(certificate));
     }
 
     private void ensureTripAccess(BusinessTrip trip) {
@@ -116,6 +119,13 @@ public class TripCertificateServiceImpl implements TripCertificateService {
             rows.add(new MarkRow(departure, arrival));
         }
         return rows;
+    }
+
+    private Context buildTemplateContext(TripCertificateResponse certificate) {
+        Context context = new Context();
+        context.setVariable("certificate", certificate);
+        context.setVariable("markRows", buildMarkRows(certificate.getMarks()));
+        return context;
     }
 
     public record MarkRow(TripCertificateMarkResponse departure, TripCertificateMarkResponse arrival) {
