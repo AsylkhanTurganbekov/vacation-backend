@@ -9,6 +9,7 @@ import com.company.vacation.entity.enums.BusinessTripStatus;
 import com.company.vacation.entity.enums.Role;
 import com.company.vacation.entity.enums.TripEventType;
 import com.company.vacation.entity.enums.VerificationStatus;
+import com.company.vacation.event.TripStatusChangedEvent;
 import com.company.vacation.exception.ApiValidationException;
 import com.company.vacation.exception.BusinessException;
 import com.company.vacation.mapper.TripEventMapper;
@@ -27,6 +28,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -44,6 +46,7 @@ public class TripEventServiceImpl implements TripEventService {
     private final TripEventMapper tripEventMapper;
     private final AuthContextService authContextService;
     private final AuditLogService auditLogService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Value("${app.storage.trip-event-image-dir:${APP_STORAGE_TRIP_EVENT_IMAGE_DIR:/app/uploads/trip-events}}")
     private String tripEventImageDir;
@@ -55,6 +58,7 @@ public class TripEventServiceImpl implements TripEventService {
         BusinessTrip trip = businessTripService.findTrip(tripId);
         ensureTripAccess(trip);
         validateBusinessFlow(trip, type);
+        BusinessTripStatus oldStatus = trip.getStatus();
 
         TripEvent event = new TripEvent();
         event.setTrip(trip);
@@ -73,6 +77,7 @@ public class TripEventServiceImpl implements TripEventService {
         persistBiometricVerification(trip, event, request);
         updateTripStatus(trip, type, request.getEventTime());
         auditLogService.log("TRIP_EVENT", event.getId(), "CREATED", authContextService.currentUserId(), request);
+        publishStatusChangedEventIfNeeded(trip, oldStatus);
         return tripEventMapper.toResponse(event);
     }
 
@@ -222,5 +227,18 @@ public class TripEventServiceImpl implements TripEventService {
 
     private Path tripEventImageStoragePath() {
         return Path.of(tripEventImageDir).toAbsolutePath().normalize();
+    }
+
+    private void publishStatusChangedEventIfNeeded(BusinessTrip trip, BusinessTripStatus oldStatus) {
+        if (oldStatus == trip.getStatus()) {
+            return;
+        }
+        applicationEventPublisher.publishEvent(TripStatusChangedEvent.builder()
+                .tripId(trip.getId())
+                .oldStatus(oldStatus)
+                .newStatus(trip.getStatus())
+                .changedByUserId(authContextService.currentUserId())
+                .changedAt(LocalDateTime.now())
+                .build());
     }
 }

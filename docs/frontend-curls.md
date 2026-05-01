@@ -81,6 +81,69 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/auth/logout' \
 204 No Content
 ```
 
+## 4.1. Зарегистрировать FCM push token
+
+Используется mobile/web после логина, когда клиент получил device token из Firebase.
+
+```bash
+curl -X POST 'http://92.38.49.156:8090/api/v1/devices/push-token' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "token": "fcm_device_token_here",
+    "platform": "android",
+    "deviceId": "android-emulator-5554",
+    "deviceName": "Pixel 8 Pro",
+    "appVersion": "1.0.0"
+  }'
+```
+
+Ответ:
+
+```json
+{
+  "success": true
+}
+```
+
+Поддерживаемые `platform`:
+- `android`
+- `ios`
+
+## 4.2. Деактивировать FCM push token
+
+Обычно вызывается на logout или при сбросе приложения.
+
+По токену:
+
+```bash
+curl -X DELETE 'http://92.38.49.156:8090/api/v1/devices/push-token' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "token": "fcm_device_token_here"
+  }'
+```
+
+Или по `deviceId`:
+
+```bash
+curl -X DELETE 'http://92.38.49.156:8090/api/v1/devices/push-token' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "deviceId": "android-emulator-5554"
+  }'
+```
+
+Ответ:
+
+```json
+{
+  "success": true
+}
+```
+
 ## 5. Список сотрудников для dropdown
 
 ```bash
@@ -147,7 +210,6 @@ curl 'http://92.38.49.156:8090/api/v1/trips?page=0&size=20&sort=plannedStartDate
 Поддерживаемые query params:
 - `q`
 - `employeeId`
-- `employeeIds`
 - `department`
 - `status`
 - `dateFrom`
@@ -264,6 +326,77 @@ curl 'http://92.38.49.156:8090/api/v1/reports/trips/summary' \
   "pendingEvents": 0
 }
 ```
+
+## 16. Notification center
+
+Получить уведомления текущего пользователя:
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/notifications?page=0&size=20' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Пример ответа:
+
+```json
+{
+  "content": [
+    {
+      "id": 1,
+      "type": "TRIP_STATUS_CHANGED",
+      "title": "Статус командировки обновлён",
+      "body": "Командировка #2 переведена в статус в пути",
+      "tripId": 2,
+      "clickAction": "trip_details",
+      "oldStatus": "APPROVED",
+      "newStatus": "IN_PROGRESS",
+      "read": false,
+      "readAt": null,
+      "createdAt": "2026-05-02T01:15:00"
+    }
+  ],
+  "page": 0,
+  "size": 20,
+  "totalElements": 1,
+  "totalPages": 1
+}
+```
+
+Отметить одно уведомление прочитанным:
+
+```bash
+curl -X PATCH 'http://92.38.49.156:8090/api/v1/notifications/1/read' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Отметить все уведомления прочитанными:
+
+```bash
+curl -X PATCH 'http://92.38.49.156:8090/api/v1/notifications/read-all' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+## 17. Какой push payload сейчас отправляет backend
+
+При смене статуса командировки backend отправляет FCM `notification` + `data`.
+
+Пример `data` payload:
+
+```json
+{
+  "type": "trip_status_changed",
+  "tripId": "2",
+  "oldStatus": "APPROVED",
+  "newStatus": "IN_PROGRESS",
+  "clickAction": "trip_details"
+}
+```
+
+Текущая логика получателей:
+- сотрудник поездки
+- инициатор создания поездки
+- без дублей
+- пользователь, который сам изменил статус, по умолчанию не уведомляется
 
 ## 16. Карта мониторинга
 

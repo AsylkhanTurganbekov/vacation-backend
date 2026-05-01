@@ -7,6 +7,7 @@ import com.company.vacation.dto.trip.UpdateTripRequest;
 import com.company.vacation.entity.BusinessTrip;
 import com.company.vacation.entity.User;
 import com.company.vacation.entity.enums.BusinessTripStatus;
+import com.company.vacation.event.TripStatusChangedEvent;
 import com.company.vacation.exception.BusinessException;
 import com.company.vacation.exception.NotFoundException;
 import com.company.vacation.mapper.BusinessTripMapper;
@@ -18,6 +19,7 @@ import com.company.vacation.service.BusinessTripService;
 import com.company.vacation.specification.BusinessTripSpecification;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -33,6 +35,7 @@ public class BusinessTripServiceImpl implements BusinessTripService {
     private final BusinessTripMapper businessTripMapper;
     private final AuditLogService auditLogService;
     private final AuthContextService authContextService;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -88,8 +91,10 @@ public class BusinessTripServiceImpl implements BusinessTripService {
         if (trip.getStatus() != BusinessTripStatus.DRAFT) {
             throw new BusinessException("Only trips in DRAFT status can be approved");
         }
+        BusinessTripStatus oldStatus = trip.getStatus();
         trip.setStatus(BusinessTripStatus.APPROVED);
         auditLogService.log("BUSINESS_TRIP", trip.getId(), "APPROVED", authContextService.currentUserId(), null);
+        publishStatusChangedEvent(trip, oldStatus, trip.getStatus());
         return businessTripMapper.toResponse(trip);
     }
 
@@ -103,8 +108,10 @@ public class BusinessTripServiceImpl implements BusinessTripService {
         if (trip.getStatus() == BusinessTripStatus.CANCELLED) {
             throw new BusinessException("Trip is already cancelled");
         }
+        BusinessTripStatus oldStatus = trip.getStatus();
         trip.setStatus(BusinessTripStatus.CANCELLED);
         auditLogService.log("BUSINESS_TRIP", trip.getId(), "CANCELLED", authContextService.currentUserId(), null);
+        publishStatusChangedEvent(trip, oldStatus, trip.getStatus());
         return businessTripMapper.toResponse(trip);
     }
 
@@ -135,5 +142,18 @@ public class BusinessTripServiceImpl implements BusinessTripService {
         if (plannedEnd.isBefore(plannedStart)) {
             throw new BusinessException("plannedEndDateTime must be after plannedStartDateTime");
         }
+    }
+
+    private void publishStatusChangedEvent(BusinessTrip trip, BusinessTripStatus oldStatus, BusinessTripStatus newStatus) {
+        if (oldStatus == newStatus) {
+            return;
+        }
+        applicationEventPublisher.publishEvent(TripStatusChangedEvent.builder()
+                .tripId(trip.getId())
+                .oldStatus(oldStatus)
+                .newStatus(newStatus)
+                .changedByUserId(authContextService.currentUserId())
+                .changedAt(LocalDateTime.now())
+                .build());
     }
 }

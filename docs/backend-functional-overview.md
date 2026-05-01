@@ -38,6 +38,120 @@ Backend реализует систему контроля командиров�
 - `logout` отзывает refresh token
 - access token фронт удаляет локально
 
+## Push-уведомления и notification center
+
+Backend подготовлен для Firebase FCM.
+
+Используемая библиотека:
+- `com.google.firebase:firebase-admin`
+
+Конфигурация:
+- `FIREBASE_SERVICE_ACCOUNT_PATH`
+- `FIREBASE_SERVICE_ACCOUNT_BASE64`
+
+Рекомендуемый вариант для сервера:
+- положить service account JSON вне репозитория
+- прописать путь в `.env` через `FIREBASE_SERVICE_ACCOUNT_PATH`
+
+### Хранение устройств
+
+Есть отдельная сущность `UserDevice`.
+
+Что хранится:
+- пользователь
+- `pushToken`
+- `platform`
+- `deviceId`
+- `deviceName`
+- `appVersion`
+- `active`
+- `lastSeenAt`
+
+Один пользователь может иметь несколько активных устройств.
+
+### API устройств
+
+- `POST /api/v1/devices/push-token`
+- `DELETE /api/v1/devices/push-token`
+
+Логика:
+- client после логина регистрирует FCM token
+- на logout или при reset app token деактивируется
+- если FCM вернул invalid/unregistered token, backend сам помечает его неактивным
+
+### Notification center
+
+Есть отдельная сущность `UserNotification`.
+
+Что хранится:
+- пользователь
+- поездка
+- тип уведомления
+- title / body
+- `eventKey` для dedupe
+- `clickAction`
+- `oldStatus`
+- `newStatus`
+- JSON payload
+- `read`
+- `readAt`
+
+API:
+- `GET /api/v1/notifications`
+- `PATCH /api/v1/notifications/{id}/read`
+- `PATCH /api/v1/notifications/read-all`
+
+### Когда отправляются push
+
+Сейчас реализован сценарий:
+- push при смене статуса командировки
+
+Источники смены статуса:
+- `approveTrip()`
+- `cancelTrip()`
+- trip events:
+  - `DEPARTURE`
+  - `ARRIVAL`
+  - `RETURN`
+
+Push отправляется только если статус действительно изменился.
+
+### Кто получает push
+
+Текущая логика получателей:
+- сотрудник поездки
+- инициатор создания поездки
+
+Особенности:
+- без дублей
+- пользователь, который сам изменил статус, не уведомляется
+- поля `approver` в текущей модели нет, поэтому approver как отдельный recipient пока не используется
+- инициатор определяется по первому audit log `BUSINESS_TRIP` с action `CREATED`
+
+### Формат push payload
+
+Backend отправляет в FCM:
+- `notification` block
+- `data` block
+
+Текущий `data` payload:
+- `type=trip_status_changed`
+- `tripId`
+- `oldStatus`
+- `newStatus`
+- `clickAction=trip_details`
+
+### Асинхронность
+
+Отправка push вынесена из основного request flow:
+- публикуется `TripStatusChangedEvent`
+- после commit транзакции срабатывает async listener
+- listener создает записи в notification center и отправляет FCM
+
+Это позволяет:
+- не блокировать основной business request
+- не отправлять push, если транзакция откатилась
+
 ## Пользователи
 
 Пользователь содержит:

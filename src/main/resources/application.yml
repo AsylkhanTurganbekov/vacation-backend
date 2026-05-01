@@ -67,6 +67,9 @@ app:
     organization-name: ${APP_DOCUMENTS_ORGANIZATION_NAME:АО "Национальные информационные технологии"}
   biometric:
     mock-provider-name: ${APP_BIOMETRIC_PROVIDER_NAME:mock-face-provider}
+  firebase:
+    service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
+    service-account-base64: ${FIREBASE_SERVICE_ACCOUNT_BASE64:}
 
 info:
   app:
