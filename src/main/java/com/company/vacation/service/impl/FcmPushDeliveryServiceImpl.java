@@ -195,7 +195,11 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
                 if (credentials.createScopedRequired()) {
                     credentials = credentials.createScoped(List.of(FIREBASE_MESSAGING_SCOPE));
                 }
-                credentials.refreshIfExpired();
+                try {
+                    credentials.refreshIfExpired();
+                } catch (IOException exception) {
+                    throw new IOException(buildRefreshErrorMessage(exception), exception);
+                }
                 FirebaseOptions options = FirebaseOptions.builder()
                         .setCredentials(credentials)
                         .setProjectId(firebaseProjectId)
@@ -266,5 +270,19 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
             return token.substring(0, Math.min(4, token.length())) + "***";
         }
         return token.substring(0, 6) + "***" + token.substring(token.length() - 6);
+    }
+
+    private String buildRefreshErrorMessage(IOException exception) {
+        StringBuilder message = new StringBuilder("Unexpected error refreshing access token");
+        Throwable cause = exception.getCause();
+        while (cause != null) {
+            if (cause.getMessage() != null && !cause.getMessage().isBlank()) {
+                message.append(" -> ").append(cause.getClass().getSimpleName()).append(": ").append(cause.getMessage());
+            } else {
+                message.append(" -> ").append(cause.getClass().getSimpleName());
+            }
+            cause = cause.getCause();
+        }
+        return message.toString();
     }
 }

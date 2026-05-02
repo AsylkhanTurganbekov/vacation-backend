@@ -4,8 +4,8 @@ import com.company.vacation.exception.BusinessException;
 import com.company.vacation.service.TripCertificatePdfService;
 import com.company.vacation.service.TripCertificateService;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import java.io.File;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,8 +13,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TripCertificatePdfServiceImpl implements TripCertificatePdfService {
 
-    private static final File PDF_SERIF_FONT = new File("/usr/share/fonts/dejavu/DejaVuSerif.ttf");
-    private static final File PDF_SANS_FONT = new File("/usr/share/fonts/dejavu/DejaVuSans.ttf");
+    private static final String[] PDF_SERIF_FONT_PATHS = {
+            "/usr/share/fonts/dejavu/DejaVuSerif.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"
+    };
+    private static final String[] PDF_SANS_FONT_PATHS = {
+            "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+    };
 
     private final TripCertificateService tripCertificateService;
 
@@ -24,11 +30,13 @@ public class TripCertificatePdfServiceImpl implements TripCertificatePdfService 
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
-            if (PDF_SERIF_FONT.exists()) {
-                builder.useFont(PDF_SERIF_FONT, "DejaVu Serif");
+            File serifFont = findFirstExistingFont(PDF_SERIF_FONT_PATHS);
+            if (serifFont != null) {
+                builder.useFont(serifFont, "DejaVu Serif");
             }
-            if (PDF_SANS_FONT.exists()) {
-                builder.useFont(PDF_SANS_FONT, "DejaVu Sans");
+            File sansFont = findFirstExistingFont(PDF_SANS_FONT_PATHS);
+            if (sansFont != null) {
+                builder.useFont(sansFont, "DejaVu Sans");
             }
             builder.withHtmlContent(html, null);
             builder.toStream(outputStream);
@@ -37,5 +45,15 @@ public class TripCertificatePdfServiceImpl implements TripCertificatePdfService 
         } catch (Exception exception) {
             throw new BusinessException("Failed to generate trip certificate PDF");
         }
+    }
+
+    private File findFirstExistingFont(String[] paths) {
+        for (String path : paths) {
+            File font = new File(path);
+            if (font.exists()) {
+                return font;
+            }
+        }
+        return null;
     }
 }
