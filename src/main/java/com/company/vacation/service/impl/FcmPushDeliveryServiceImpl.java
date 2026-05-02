@@ -216,7 +216,7 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
             String jwtAssertion = Jwts.builder()
                     .issuer(config.clientEmail())
                     .claim("scope", FIREBASE_MESSAGING_SCOPE)
-                    .audience().add(config.tokenUri()).and()
+                    .claim("aud", config.tokenUri())
                     .issuedAt(Date.from(now))
                     .expiration(Date.from(now.plusSeconds(3600)))
                     .signWith(config.privateKey(), Jwts.SIG.RS256)
