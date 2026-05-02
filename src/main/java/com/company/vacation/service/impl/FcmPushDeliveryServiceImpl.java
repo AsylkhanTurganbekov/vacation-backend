@@ -26,7 +26,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +51,7 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
     private volatile String firebaseProjectId;
     private volatile String lastConfigurationReason = "firebase_not_initialized";
     private static final String FIREBASE_APP_NAME = "triply-fcm";
+    private static final String FIREBASE_MESSAGING_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 
     @Override
     public PushSendResult sendToTokens(Collection<String> tokens, String title, String body, Map<String, String> data) {
@@ -191,8 +191,14 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
                     lastConfigurationReason = "missing_service_account";
                     return null;
                 }
+                GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream);
+                if (credentials.createScopedRequired()) {
+                    credentials = credentials.createScoped(List.of(FIREBASE_MESSAGING_SCOPE));
+                }
+                credentials.refreshIfExpired();
                 FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(inputStream))
+                        .setCredentials(credentials)
+                        .setProjectId(firebaseProjectId)
                         .build();
                 FirebaseApp app = FirebaseApp.getApps().stream()
                         .filter(existing -> FIREBASE_APP_NAME.equals(existing.getName()))
@@ -209,6 +215,11 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
             } catch (Exception exception) {
                 lastConfigurationReason = "firebase_not_initialized";
                 log.error("Failed to initialize Firebase Messaging: {}", exception.getMessage(), exception);
+                Throwable cause = exception.getCause();
+                while (cause != null) {
+                    log.error("Firebase init cause: {}", cause.getMessage(), cause);
+                    cause = cause.getCause();
+                }
                 return null;
             }
         }
