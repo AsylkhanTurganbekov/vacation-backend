@@ -1,12 +1,14 @@
 package com.company.vacation.controller;
 
 import com.company.vacation.dto.common.PagedResponse;
+import com.company.vacation.dto.report.UserStatsResponse;
 import com.company.vacation.dto.user.UserActiveUpdateRequest;
 import com.company.vacation.dto.user.UserRequest;
 import com.company.vacation.dto.user.UserResponse;
 import com.company.vacation.dto.user.UserUpdateRequest;
 import com.company.vacation.entity.enums.Role;
 import com.company.vacation.service.UserService;
+import com.company.vacation.service.ReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -33,6 +35,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
 
     private final UserService userService;
+    private final ReportService reportService;
 
     @GetMapping
     public PagedResponse<UserResponse> getUsers(@org.springframework.web.bind.annotation.RequestParam(required = false, name = "q") String queryText,
@@ -46,6 +49,11 @@ public class UserController {
     @GetMapping("/{id}")
     public UserResponse getUser(@PathVariable Long id) {
         return userService.getUser(id);
+    }
+
+    @GetMapping("/{id}/stats")
+    public UserStatsResponse getUserStats(@PathVariable Long id) {
+        return reportService.getUserStats(id);
     }
 
     @GetMapping("/{id}/avatar")

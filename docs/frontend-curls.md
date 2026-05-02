@@ -158,6 +158,42 @@ curl 'http://92.38.49.156:8090/api/v1/users?q=demo&role=EMPLOYEE&active=true&siz
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
+## 6.1. Статистика сотрудника по id
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/users/2/stats' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Пример ответа:
+
+```json
+{
+  "userId": 2,
+  "fullName": "Demo Employee",
+  "email": "employee@vacation.local",
+  "department": "Field Service",
+  "position": "Field Engineer",
+  "avatarUrl": "/api/v1/users/2/avatar",
+  "active": true,
+  "totalTrips": 2,
+  "tripsByStatus": {
+    "DRAFT": 0,
+    "APPROVED": 1,
+    "IN_PROGRESS": 0,
+    "ARRIVED": 0,
+    "COMPLETED": 1,
+    "CANCELLED": 0
+  },
+  "totalEvents": 3,
+  "verifiedEvents": 3,
+  "failedEvents": 0,
+  "pendingEvents": 0,
+  "lastTripAt": "2026-04-25T09:00:00",
+  "lastEventAt": "2026-04-26T17:40:00"
+}
+```
+
 ## 7. Получить аватар пользователя
 
 ```bash

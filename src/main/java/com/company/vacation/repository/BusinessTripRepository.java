@@ -1,6 +1,7 @@
 package com.company.vacation.repository;
 
 import com.company.vacation.entity.BusinessTrip;
+import com.company.vacation.entity.enums.BusinessTripStatus;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -27,4 +28,11 @@ public interface BusinessTripRepository extends JpaRepository<BusinessTrip, Long
 
     @EntityGraph(attributePaths = "employee")
     Optional<BusinessTrip> findByIdAndEmployee_Id(Long id, Long employeeId);
+
+    long countByEmployee_Id(Long employeeId);
+
+    long countByEmployee_IdAndStatus(Long employeeId, BusinessTripStatus status);
+
+    @EntityGraph(attributePaths = "employee")
+    Optional<BusinessTrip> findTopByEmployee_IdOrderByPlannedStartDateTimeDesc(Long employeeId);
 }

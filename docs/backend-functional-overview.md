@@ -197,6 +197,7 @@ Backend отправляет в FCM:
 Что умеет backend:
 - получить список пользователей
 - получить одного пользователя
+- получить статистику пользователя по id
 - создать пользователя
 - обновить пользователя
 - включить/отключить пользователя
@@ -222,6 +223,25 @@ Backend отправляет в FCM:
 - `GET /api/v1/users/{id}/avatar`
 - `POST /api/v1/users/{id}/avatar`
 - `DELETE /api/v1/users/{id}/avatar`
+
+Статистика пользователя:
+- `GET /api/v1/users/{id}/stats`
+
+Что возвращает:
+- базовую карточку пользователя
+- `totalTrips`
+- `tripsByStatus`
+- `totalEvents`
+- `verifiedEvents`
+- `failedEvents`
+- `pendingEvents`
+- `lastTripAt`
+- `lastEventAt`
+
+Это удобно для:
+- карточки сотрудника
+- блока аналитики по одному пользователю
+- быстрого summary без отдельного trips list запроса
 
 Логика доступа:
 - `ADMIN` может менять аватар любого пользователя

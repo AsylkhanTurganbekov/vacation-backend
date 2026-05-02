@@ -2,6 +2,7 @@ package com.company.vacation.service;
 
 import com.company.vacation.dto.common.PagedResponse;
 import com.company.vacation.dto.report.TripSummaryResponse;
+import com.company.vacation.dto.report.UserStatsResponse;
 import com.company.vacation.dto.trip.TripResponse;
 import com.company.vacation.entity.enums.BusinessTripStatus;
 import java.time.LocalDateTime;
@@ -16,4 +17,6 @@ public interface ReportService {
 
     PagedResponse<TripResponse> getEmployeeTripsReport(Long employeeId, String queryText, BusinessTripStatus status,
                                                        String department, LocalDateTime dateFrom, LocalDateTime dateTo, Pageable pageable);
+
+    UserStatsResponse getUserStats(Long userId);
 }
