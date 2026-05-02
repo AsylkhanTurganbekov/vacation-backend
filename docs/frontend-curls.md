@@ -376,6 +376,41 @@ curl -X PATCH 'http://92.38.49.156:8090/api/v1/notifications/read-all' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
+## 16.1. Тестовая отправка push на текущего пользователя
+
+Используется для ручной проверки push без смены статуса командировки и без запуска trip business flow.
+
+```bash
+curl -X POST 'http://92.38.49.156:8090/api/v1/notifications/test-push' \
+  -H 'Authorization: Bearer ACCESS_TOKEN' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "title": "Тестовое уведомление",
+    "body": "Проверка push в Triply",
+    "tripId": 2
+  }'
+```
+
+Пример ответа:
+
+```json
+{
+  "success": true,
+  "devicesFound": 2,
+  "configured": true,
+  "successCount": 2,
+  "failureCount": 0
+}
+```
+
+Логика endpoint:
+- берет текущего пользователя из access token
+- находит все его активные `pushToken`
+- отправляет push на все найденные устройства
+- ничего не меняет в trip business logic
+- не создает trip status change event
+- не требует approve/cancel/departure/arrival/return
+
 ## 17. Какой push payload сейчас отправляет backend
 
 При смене статуса командировки backend отправляет FCM `notification` + `data`.

@@ -1,5 +1,6 @@
 package com.company.vacation.service.impl;
 
+import com.company.vacation.dto.notification.PushSendResult;
 import com.company.vacation.service.DevicePushTokenService;
 import com.company.vacation.service.PushDeliveryService;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -45,15 +46,25 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
     private static final String FIREBASE_APP_NAME = "triply-fcm";
 
     @Override
-    public void sendToTokens(Collection<String> tokens, String title, String body, Map<String, String> data) {
+    public PushSendResult sendToTokens(Collection<String> tokens, String title, String body, Map<String, String> data) {
         if (tokens == null || tokens.isEmpty()) {
-            return;
+            return PushSendResult.builder()
+                    .configured(isConfigured())
+                    .requestedTokens(0)
+                    .successCount(0)
+                    .failureCount(0)
+                    .build();
         }
 
         FirebaseMessaging messaging = firebaseMessaging();
         if (messaging == null) {
             log.warn("FCM is not configured; skipping push delivery for {} tokens", tokens.size());
-            return;
+            return PushSendResult.builder()
+                    .configured(false)
+                    .requestedTokens(tokens.size())
+                    .successCount(0)
+                    .failureCount(tokens.size())
+                    .build();
         }
 
         List<String> tokenList = new ArrayList<>(tokens);
@@ -75,9 +86,26 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
                     handleSendException(tokenList.get(index), sendResponse.getException());
                 }
             }
+            return PushSendResult.builder()
+                    .configured(true)
+                    .requestedTokens(tokenList.size())
+                    .successCount(response.getSuccessCount())
+                    .failureCount(response.getFailureCount())
+                    .build();
         } catch (FirebaseMessagingException exception) {
             log.error("FCM batch send failed: {}", exception.getMessage(), exception);
+            return PushSendResult.builder()
+                    .configured(true)
+                    .requestedTokens(tokenList.size())
+                    .successCount(0)
+                    .failureCount(tokenList.size())
+                    .build();
         }
+    }
+
+    private boolean isConfigured() {
+        return (serviceAccountPath != null && !serviceAccountPath.isBlank())
+                || (serviceAccountBase64 != null && !serviceAccountBase64.isBlank());
     }
 
     private FirebaseMessaging firebaseMessaging() {

@@ -3,6 +3,9 @@ package com.company.vacation.service.impl;
 import com.company.vacation.dto.common.PagedResponse;
 import com.company.vacation.dto.common.SuccessResponse;
 import com.company.vacation.dto.notification.NotificationResponse;
+import com.company.vacation.dto.notification.PushSendResult;
+import com.company.vacation.dto.notification.TestPushRequest;
+import com.company.vacation.dto.notification.TestPushResponse;
 import com.company.vacation.entity.AuditLog;
 import com.company.vacation.entity.BusinessTrip;
 import com.company.vacation.entity.User;
@@ -77,6 +80,33 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
                     }
                 });
         return SuccessResponse.builder().success(true).build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TestPushResponse sendTestPush(TestPushRequest request) {
+        Long currentUserId = authContextService.currentUserId();
+        List<UserDevice> activeDevices = devicePushTokenService.findActiveDevicesForUsers(List.of(currentUserId));
+        Set<String> tokens = activeDevices.stream()
+                .map(UserDevice::getPushToken)
+                .filter(Objects::nonNull)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("type", "test_push");
+        data.put("clickAction", "notification_test");
+        if (request.getTripId() != null) {
+            data.put("tripId", String.valueOf(request.getTripId()));
+        }
+
+        PushSendResult sendResult = pushDeliveryService.sendToTokens(tokens, request.getTitle(), request.getBody(), data);
+        return TestPushResponse.builder()
+                .success(sendResult.isConfigured() && sendResult.getSuccessCount() > 0)
+                .devicesFound(tokens.size())
+                .configured(sendResult.isConfigured())
+                .successCount(sendResult.getSuccessCount())
+                .failureCount(sendResult.getFailureCount())
+                .build();
     }
 
     @Override

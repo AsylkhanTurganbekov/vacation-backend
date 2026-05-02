@@ -3,13 +3,18 @@ package com.company.vacation.controller;
 import com.company.vacation.dto.common.PagedResponse;
 import com.company.vacation.dto.common.SuccessResponse;
 import com.company.vacation.dto.notification.NotificationResponse;
+import com.company.vacation.dto.notification.TestPushRequest;
+import com.company.vacation.dto.notification.TestPushResponse;
 import com.company.vacation.service.NotificationCenterService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,5 +39,10 @@ public class NotificationController {
     @PatchMapping("/read-all")
     public SuccessResponse markAllRead() {
         return notificationCenterService.markAllAsRead();
+    }
+
+    @PostMapping("/test-push")
+    public TestPushResponse sendTestPush(@Valid @RequestBody TestPushRequest request) {
+        return notificationCenterService.sendTestPush(request);
     }
 }

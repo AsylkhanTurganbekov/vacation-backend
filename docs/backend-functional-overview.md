@@ -100,6 +100,27 @@ API:
 - `GET /api/v1/notifications`
 - `PATCH /api/v1/notifications/{id}/read`
 - `PATCH /api/v1/notifications/read-all`
+- `POST /api/v1/notifications/test-push`
+
+### Test push endpoint
+
+Есть отдельный ручной endpoint для frontend/mobile команды:
+- `POST /api/v1/notifications/test-push`
+
+Назначение:
+- проверить FCM-доставку на текущего пользователя
+- не менять статус командировки
+- не запускать trip business logic
+
+Что делает:
+- берет текущего пользователя из access token
+- находит все его активные устройства
+- отправляет test push на все активные `pushToken`
+- возвращает:
+  - сколько устройств найдено
+  - настроен ли Firebase на сервере
+  - сколько отправок прошло успешно
+  - сколько упало
 
 ### Когда отправляются push
 
