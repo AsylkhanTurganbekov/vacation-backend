@@ -91,6 +91,11 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
                 .map(UserDevice::getPushToken)
                 .filter(Objects::nonNull)
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        log.info("Test push requested: userId={}, tripId={}, devicesFound={}, tokenMasks={}",
+                currentUserId,
+                request.getTripId(),
+                tokens.size(),
+                tokens.stream().map(this::maskToken).toList());
 
         Map<String, String> data = new LinkedHashMap<>();
         data.put("type", "test_push");
@@ -100,12 +105,24 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         }
 
         PushSendResult sendResult = pushDeliveryService.sendToTokens(tokens, request.getTitle(), request.getBody(), data);
+        log.info("Test push result: userId={}, tripId={}, devicesFound={}, configured={}, reason={}, projectId={}, successCount={}, failureCount={}",
+                currentUserId,
+                request.getTripId(),
+                tokens.size(),
+                sendResult.isConfigured(),
+                sendResult.getReason(),
+                sendResult.getProjectId(),
+                sendResult.getSuccessCount(),
+                sendResult.getFailureCount());
         return TestPushResponse.builder()
                 .success(sendResult.isConfigured() && sendResult.getSuccessCount() > 0)
                 .devicesFound(tokens.size())
                 .configured(sendResult.isConfigured())
+                .reason(sendResult.getReason())
+                .projectId(sendResult.getProjectId())
                 .successCount(sendResult.getSuccessCount())
                 .failureCount(sendResult.getFailureCount())
+                .tokenResults(sendResult.getTokenResults())
                 .build();
     }
 
@@ -231,5 +248,15 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         } catch (JsonProcessingException exception) {
             return "{\"serializationError\":\"" + exception.getMessage() + "\"}";
         }
+    }
+
+    private String maskToken(String token) {
+        if (token == null || token.isBlank()) {
+            return "<empty>";
+        }
+        if (token.length() <= 12) {
+            return token.substring(0, Math.min(4, token.length())) + "***";
+        }
+        return token.substring(0, 6) + "***" + token.substring(token.length() - 6);
     }
 }

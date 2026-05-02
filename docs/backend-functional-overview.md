@@ -119,8 +119,18 @@ API:
 - возвращает:
   - сколько устройств найдено
   - настроен ли Firebase на сервере
+  - причину результата (`reason`)
+  - `projectId`, с которым инициализировался Firebase Admin SDK
   - сколько отправок прошло успешно
   - сколько упало
+  - результат по каждому токену в masked виде
+
+Возможные `reason`:
+- `ok`
+- `missing_service_account`
+- `missing_service_account_file`
+- `firebase_not_initialized`
+- `token_send_failed`
 
 ### Когда отправляются push
 

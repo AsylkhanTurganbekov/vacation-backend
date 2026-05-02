@@ -1,8 +1,11 @@
 package com.company.vacation.service.impl;
 
 import com.company.vacation.dto.notification.PushSendResult;
+import com.company.vacation.dto.notification.PushTokenResult;
 import com.company.vacation.service.DevicePushTokenService;
 import com.company.vacation.service.PushDeliveryService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
@@ -18,10 +21,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +40,7 @@ import org.springframework.stereotype.Service;
 public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
 
     private final DevicePushTokenService devicePushTokenService;
+    private final ObjectMapper objectMapper;
 
     @Value("${app.firebase.service-account-path:${FIREBASE_SERVICE_ACCOUNT_PATH:}}")
     private String serviceAccountPath;
@@ -43,6 +49,8 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
     private String serviceAccountBase64;
 
     private volatile FirebaseMessaging firebaseMessaging;
+    private volatile String firebaseProjectId;
+    private volatile String lastConfigurationReason = "firebase_not_initialized";
     private static final String FIREBASE_APP_NAME = "triply-fcm";
 
     @Override
@@ -50,9 +58,12 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
         if (tokens == null || tokens.isEmpty()) {
             return PushSendResult.builder()
                     .configured(isConfigured())
+                    .reason(isConfigured() ? "no_tokens" : currentConfigurationReason())
+                    .projectId(firebaseProjectId)
                     .requestedTokens(0)
                     .successCount(0)
                     .failureCount(0)
+                    .tokenResults(List.of())
                     .build();
         }
 
@@ -61,9 +72,19 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
             log.warn("FCM is not configured; skipping push delivery for {} tokens", tokens.size());
             return PushSendResult.builder()
                     .configured(false)
+                    .reason(currentConfigurationReason())
+                    .projectId(firebaseProjectId)
                     .requestedTokens(tokens.size())
                     .successCount(0)
                     .failureCount(tokens.size())
+                    .tokenResults(tokens.stream()
+                            .map(token -> PushTokenResult.builder()
+                                    .tokenMasked(maskToken(token))
+                                    .success(false)
+                                    .errorCode(currentConfigurationReason())
+                                    .errorMessage("Push provider is not initialized")
+                                    .build())
+                            .toList())
                     .build();
         }
 
@@ -80,25 +101,63 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
         try {
             BatchResponse response = messaging.sendEachForMulticast(message);
             log.info("FCM send completed: success={}, failure={}", response.getSuccessCount(), response.getFailureCount());
+            List<PushTokenResult> tokenResults = new ArrayList<>();
             for (int index = 0; index < response.getResponses().size(); index++) {
                 SendResponse sendResponse = response.getResponses().get(index);
-                if (!sendResponse.isSuccessful() && sendResponse.getException() != null) {
-                    handleSendException(tokenList.get(index), sendResponse.getException());
+                String token = tokenList.get(index);
+                if (sendResponse.isSuccessful()) {
+                    tokenResults.add(PushTokenResult.builder()
+                            .tokenMasked(maskToken(token))
+                            .success(true)
+                            .build());
+                } else if (sendResponse.getException() != null) {
+                    FirebaseMessagingException exception = sendResponse.getException();
+                    handleSendException(token, exception);
+                    tokenResults.add(PushTokenResult.builder()
+                            .tokenMasked(maskToken(token))
+                            .success(false)
+                            .errorCode(exception.getMessagingErrorCode() != null
+                                    ? exception.getMessagingErrorCode().name().toLowerCase()
+                                    : "token_send_failed")
+                            .errorMessage(exception.getMessage())
+                            .build());
+                } else {
+                    tokenResults.add(PushTokenResult.builder()
+                            .tokenMasked(maskToken(token))
+                            .success(false)
+                            .errorCode("token_send_failed")
+                            .errorMessage("Unknown FCM send failure")
+                            .build());
                 }
             }
             return PushSendResult.builder()
                     .configured(true)
+                    .reason("ok")
+                    .projectId(firebaseProjectId)
                     .requestedTokens(tokenList.size())
                     .successCount(response.getSuccessCount())
                     .failureCount(response.getFailureCount())
+                    .tokenResults(tokenResults)
                     .build();
         } catch (FirebaseMessagingException exception) {
             log.error("FCM batch send failed: {}", exception.getMessage(), exception);
             return PushSendResult.builder()
                     .configured(true)
+                    .reason("token_send_failed")
+                    .projectId(firebaseProjectId)
                     .requestedTokens(tokenList.size())
                     .successCount(0)
                     .failureCount(tokenList.size())
+                    .tokenResults(tokenList.stream()
+                            .map(token -> PushTokenResult.builder()
+                                    .tokenMasked(maskToken(token))
+                                    .success(false)
+                                    .errorCode(exception.getMessagingErrorCode() != null
+                                            ? exception.getMessagingErrorCode().name().toLowerCase()
+                                            : "token_send_failed")
+                                    .errorMessage(exception.getMessage())
+                                    .build())
+                            .toList())
                     .build();
         }
     }
@@ -108,18 +167,28 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
                 || (serviceAccountBase64 != null && !serviceAccountBase64.isBlank());
     }
 
+    private String currentConfigurationReason() {
+        if (!isConfigured()) {
+            return "missing_service_account";
+        }
+        return lastConfigurationReason;
+    }
+
     private FirebaseMessaging firebaseMessaging() {
         FirebaseMessaging current = firebaseMessaging;
         if (current != null) {
+            lastConfigurationReason = "ok";
             return current;
         }
 
         synchronized (this) {
             if (firebaseMessaging != null) {
+                lastConfigurationReason = "ok";
                 return firebaseMessaging;
             }
             try (InputStream inputStream = openCredentialsStream()) {
                 if (inputStream == null) {
+                    lastConfigurationReason = "missing_service_account";
                     return null;
                 }
                 FirebaseOptions options = FirebaseOptions.builder()
@@ -130,8 +199,15 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
                         .findFirst()
                         .orElseGet(() -> FirebaseApp.initializeApp(options, FIREBASE_APP_NAME));
                 firebaseMessaging = FirebaseMessaging.getInstance(app);
+                firebaseProjectId = app.getOptions().getProjectId();
+                lastConfigurationReason = "ok";
                 return firebaseMessaging;
+            } catch (NoSuchFileException exception) {
+                lastConfigurationReason = "missing_service_account_file";
+                log.error("Failed to initialize Firebase Messaging: {}", exception.getMessage(), exception);
+                return null;
             } catch (Exception exception) {
+                lastConfigurationReason = "firebase_not_initialized";
                 log.error("Failed to initialize Firebase Messaging: {}", exception.getMessage(), exception);
                 return null;
             }
@@ -140,10 +216,12 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
 
     private InputStream openCredentialsStream() throws IOException {
         if (serviceAccountPath != null && !serviceAccountPath.isBlank()) {
+            firebaseProjectId = parseProjectId(Files.readString(Path.of(serviceAccountPath), StandardCharsets.UTF_8));
             return Files.newInputStream(Path.of(serviceAccountPath));
         }
         if (serviceAccountBase64 != null && !serviceAccountBase64.isBlank()) {
             byte[] decoded = Base64.getDecoder().decode(serviceAccountBase64);
+            firebaseProjectId = parseProjectId(new String(decoded, StandardCharsets.UTF_8));
             return new ByteArrayInputStream(decoded);
         }
         return null;
@@ -157,5 +235,25 @@ public class FcmPushDeliveryServiceImpl implements PushDeliveryService {
                 || code == MessagingErrorCode.SENDER_ID_MISMATCH) {
             devicePushTokenService.deactivateInvalidToken(token);
         }
+    }
+
+    private String parseProjectId(String json) {
+        try {
+            JsonNode node = objectMapper.readTree(json);
+            JsonNode projectId = node.get("project_id");
+            return projectId != null && !projectId.isNull() ? projectId.asText() : null;
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private String maskToken(String token) {
+        if (token == null || token.isBlank()) {
+            return "<empty>";
+        }
+        if (token.length() <= 12) {
+            return token.substring(0, Math.min(4, token.length())) + "***";
+        }
+        return token.substring(0, 6) + "***" + token.substring(token.length() - 6);
     }
 }

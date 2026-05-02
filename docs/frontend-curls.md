@@ -398,8 +398,18 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/notifications/test-push' \
   "success": true,
   "devicesFound": 2,
   "configured": true,
+  "reason": "ok",
+  "projectId": "triply-66838",
   "successCount": 2,
-  "failureCount": 0
+  "failureCount": 0,
+  "tokenResults": [
+    {
+      "tokenMasked": "dQw4w9***XcQ123",
+      "success": true,
+      "errorCode": null,
+      "errorMessage": null
+    }
+  ]
 }
 ```
 
@@ -410,6 +420,13 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/notifications/test-push' \
 - ничего не меняет в trip business logic
 - не создает trip status change event
 - не требует approve/cancel/departure/arrival/return
+
+Возможные `reason`:
+- `ok`
+- `missing_service_account`
+- `missing_service_account_file`
+- `firebase_not_initialized`
+- `token_send_failed`
 
 ## 17. Какой push payload сейчас отправляет backend
 
