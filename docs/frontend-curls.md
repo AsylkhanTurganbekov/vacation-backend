@@ -254,10 +254,25 @@ curl 'http://92.38.49.156:8090/api/v1/trips?page=0&size=20&sort=plannedStartDate
 - `size`
 - `sort`
 
+Логика `dateFrom/dateTo` для календаря:
+- backend возвращает командировки, которые пересекаются с запрошенным интервалом
+- условие пересечения:
+  - `plannedStartDateTime <= dateTo`
+  - `plannedEndDateTime >= dateFrom`
+- поэтому в выборку попадут и поездки, начавшиеся раньше периода, но еще идущие внутри него
+- и поездки, начинающиеся внутри периода и заканчивающиеся уже после него
+
 Пример:
 
 ```bash
 curl 'http://92.38.49.156:8090/api/v1/trips?q=astana&employeeId=2&department=Field%20Service&status=APPROVED&dateFrom=2026-04-01T00:00:00&dateTo=2026-04-30T23:59:59&page=0&size=20&sort=plannedStartDateTime,desc' \
+  -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Пример для календаря за май 2026:
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/trips?dateFrom=2026-05-01T00:00:00&dateTo=2026-05-31T23:59:59&page=0&size=100&sort=plannedStartDateTime,asc' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
