@@ -43,11 +43,13 @@ public final class BusinessTripSpecification {
                         department.trim().toLowerCase()
                 ));
             }
-            if (dateFrom != null) {
-                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("plannedStartDateTime"), dateFrom));
-            }
-            if (dateTo != null) {
-                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("plannedEndDateTime"), dateTo));
+            if (dateFrom != null && dateTo != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("plannedStartDateTime"), dateTo));
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("plannedEndDateTime"), dateFrom));
+            } else if (dateFrom != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("plannedEndDateTime"), dateFrom));
+            } else if (dateTo != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("plannedStartDateTime"), dateTo));
             }
             return criteriaBuilder.and(predicates.toArray(jakarta.persistence.criteria.Predicate[]::new));
         };
