@@ -396,11 +396,17 @@ curl 'http://92.38.49.156:8090/api/v1/notifications?page=0&size=20' \
       "id": 1,
       "type": "TRIP_STATUS_CHANGED",
       "title": "Статус командировки обновлён",
-      "body": "Командировка #2 переведена в статус в пути",
+      "body": "Хамза — Client infrastructure inspection — статус: на месте",
       "tripId": 2,
+      "employeeId": 5,
+      "employeeName": "Хамза",
+      "tripPurpose": "Client infrastructure inspection",
+      "destinationAddress": "Astana, Mangilik El 55",
       "clickAction": "trip_details",
       "oldStatus": "APPROVED",
-      "newStatus": "IN_PROGRESS",
+      "newStatus": "ARRIVED",
+      "eventType": "ARRIVAL",
+      "eventTime": "2026-05-09T16:24:00",
       "read": false,
       "readAt": null,
       "createdAt": "2026-05-02T01:15:00"
@@ -412,6 +418,11 @@ curl 'http://92.38.49.156:8090/api/v1/notifications?page=0&size=20' \
   "totalPages": 1
 }
 ```
+
+Frontend может использовать structured fields без парсинга `body`:
+- основная строка: `employeeName`
+- вторая строка: `tripPurpose`
+- третья строка: статус по `newStatus`
 
 Отметить одно уведомление прочитанным:
 

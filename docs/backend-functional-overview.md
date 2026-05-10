@@ -90,8 +90,14 @@ Backend подготовлен для Firebase FCM.
 - title / body
 - `eventKey` для dedupe
 - `clickAction`
+- `employeeId`
+- `employeeName`
+- `tripPurpose`
+- `destinationAddress`
 - `oldStatus`
 - `newStatus`
+- `eventType`
+- `eventTime`
 - JSON payload
 - `read`
 - `readAt`
@@ -168,9 +174,17 @@ Backend отправляет в FCM:
 Текущий `data` payload:
 - `type=trip_status_changed`
 - `tripId`
+- `employeeId`
+- `employeeName`
+- `tripPurpose`
+- `destinationAddress`
 - `oldStatus`
 - `newStatus`
+- `eventType`
+- `eventTime`
 - `clickAction=trip_details`
+
+Эти же структурированные поля backend возвращает в `GET /api/v1/notifications`, поэтому frontend может строить красивый UI без парсинга `body`.
 
 ### Асинхронность
 

@@ -13,6 +13,7 @@ import com.company.vacation.entity.UserDevice;
 import com.company.vacation.entity.UserNotification;
 import com.company.vacation.entity.enums.BusinessTripStatus;
 import com.company.vacation.entity.enums.NotificationType;
+import com.company.vacation.entity.enums.TripEventType;
 import com.company.vacation.event.TripStatusChangedEvent;
 import com.company.vacation.exception.NotFoundException;
 import com.company.vacation.repository.AuditLogRepository;
@@ -138,18 +139,13 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         }
 
         String title = "Статус командировки обновлён";
-        String body = "Командировка #%d переведена в статус %s"
-                .formatted(trip.getId(), statusLabel(event.getNewStatus()));
+        String body = "%s — %s — статус: %s"
+                .formatted(trip.getEmployee().getFullName(), tripPurpose(trip), statusLabel(event.getNewStatus()));
         String eventKey = "trip-status:%d:%s:%s"
                 .formatted(trip.getId(), event.getNewStatus(), event.getChangedAt());
 
-        Map<String, String> data = Map.of(
-                "type", "trip_status_changed",
-                "tripId", String.valueOf(trip.getId()),
-                "oldStatus", event.getOldStatus().name(),
-                "newStatus", event.getNewStatus().name(),
-                "clickAction", "trip_details"
-        );
+        Map<String, Object> payload = buildTripStatusPayload(trip, event);
+        Map<String, String> data = toFcmDataPayload(payload);
 
         Set<Long> newlyNotifiedUserIds = new LinkedHashSet<>();
         List<UserDevice> activeDevices = devicePushTokenService.findActiveDevicesForUsers(
@@ -160,7 +156,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
                     .orElseGet(() -> {
                         newlyNotifiedUserIds.add(recipient.getId());
                         return createNotification(recipient, trip, event.getOldStatus(), event.getNewStatus(),
-                                eventKey, title, body, data);
+                                eventKey, title, body, payload);
                     });
         }
 
@@ -184,7 +180,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
 
     private UserNotification createNotification(User recipient, BusinessTrip trip, BusinessTripStatus oldStatus,
                                                 BusinessTripStatus newStatus, String eventKey, String title,
-                                                String body, Map<String, String> data) {
+                                                String body, Map<String, Object> payload) {
         UserNotification notification = new UserNotification();
         notification.setUser(recipient);
         notification.setTrip(trip);
@@ -192,10 +188,10 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         notification.setTitle(title);
         notification.setBody(body);
         notification.setEventKey(eventKey);
-        notification.setClickAction(data.get("clickAction"));
+        notification.setClickAction((String) payload.get("clickAction"));
         notification.setOldStatus(oldStatus);
         notification.setNewStatus(newStatus);
-        notification.setPayloadJson(toJson(data));
+        notification.setPayloadJson(toJson(payload));
         return userNotificationRepository.save(notification);
     }
 
@@ -216,6 +212,7 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
     }
 
     private NotificationResponse toResponse(UserNotification notification) {
+        Map<String, Object> payload = parsePayload(notification.getPayloadJson());
         return NotificationResponse.builder()
                 .id(notification.getId())
                 .type(notification.getType())
@@ -225,10 +222,52 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
                 .clickAction(notification.getClickAction())
                 .oldStatus(notification.getOldStatus())
                 .newStatus(notification.getNewStatus())
+                .employeeId(asLong(payload.get("employeeId")))
+                .employeeName((String) payload.get("employeeName"))
+                .tripPurpose((String) payload.get("tripPurpose"))
+                .destinationAddress((String) payload.get("destinationAddress"))
+                .eventType(asTripEventType(payload.get("eventType")))
+                .eventTime(asLocalDateTime(payload.get("eventTime")))
                 .read(notification.isRead())
                 .readAt(notification.getReadAt())
                 .createdAt(notification.getCreatedAt())
                 .build();
+    }
+
+    private Map<String, Object> buildTripStatusPayload(BusinessTrip trip, TripStatusChangedEvent event) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("type", "trip_status_changed");
+        payload.put("tripId", trip.getId());
+        payload.put("employeeId", trip.getEmployee().getId());
+        payload.put("employeeName", trip.getEmployee().getFullName());
+        payload.put("tripPurpose", tripPurpose(trip));
+        payload.put("destinationAddress", trip.getDestinationAddress());
+        payload.put("oldStatus", event.getOldStatus() != null ? event.getOldStatus().name() : null);
+        payload.put("newStatus", event.getNewStatus() != null ? event.getNewStatus().name() : null);
+        payload.put("eventType", event.getEventType() != null ? event.getEventType().name() : null);
+        payload.put("eventTime", event.getEventTime() != null ? event.getEventTime().toString() : null);
+        payload.put("clickAction", "trip_details");
+        return payload;
+    }
+
+    private Map<String, String> toFcmDataPayload(Map<String, Object> payload) {
+        Map<String, String> data = new LinkedHashMap<>();
+        payload.forEach((key, value) -> {
+            if (value != null) {
+                data.put(key, String.valueOf(value));
+            }
+        });
+        return data;
+    }
+
+    private String tripPurpose(BusinessTrip trip) {
+        if (trip.getPurpose() != null && !trip.getPurpose().isBlank()) {
+            return trip.getPurpose().trim();
+        }
+        if (trip.getDestinationAddress() != null && !trip.getDestinationAddress().isBlank()) {
+            return trip.getDestinationAddress().trim();
+        }
+        return "Командировка";
     }
 
     private String statusLabel(BusinessTripStatus status) {
@@ -242,11 +281,60 @@ public class NotificationCenterServiceImpl implements NotificationCenterService 
         };
     }
 
-    private String toJson(Map<String, String> payload) {
+    private String toJson(Map<String, Object> payload) {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException exception) {
             return "{\"serializationError\":\"" + exception.getMessage() + "\"}";
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> parsePayload(String payloadJson) {
+        if (payloadJson == null || payloadJson.isBlank()) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(payloadJson, LinkedHashMap.class);
+        } catch (Exception exception) {
+            log.warn("Failed to parse notification payload JSON: {}", exception.getMessage());
+            return Map.of();
+        }
+    }
+
+    private Long asLong(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        try {
+            return Long.valueOf(String.valueOf(value));
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private LocalDateTime asLocalDateTime(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(String.valueOf(value));
+        } catch (Exception exception) {
+            return null;
+        }
+    }
+
+    private TripEventType asTripEventType(Object value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return TripEventType.valueOf(String.valueOf(value));
+        } catch (IllegalArgumentException exception) {
+            return null;
         }
     }
 

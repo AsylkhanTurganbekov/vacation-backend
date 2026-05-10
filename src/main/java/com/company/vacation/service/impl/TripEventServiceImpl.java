@@ -77,7 +77,7 @@ public class TripEventServiceImpl implements TripEventService {
         persistBiometricVerification(trip, event, request);
         updateTripStatus(trip, type, request.getEventTime());
         auditLogService.log("TRIP_EVENT", event.getId(), "CREATED", authContextService.currentUserId(), request);
-        publishStatusChangedEventIfNeeded(trip, oldStatus);
+        publishStatusChangedEventIfNeeded(trip, oldStatus, event);
         return tripEventMapper.toResponse(event);
     }
 
@@ -229,7 +229,7 @@ public class TripEventServiceImpl implements TripEventService {
         return Path.of(tripEventImageDir).toAbsolutePath().normalize();
     }
 
-    private void publishStatusChangedEventIfNeeded(BusinessTrip trip, BusinessTripStatus oldStatus) {
+    private void publishStatusChangedEventIfNeeded(BusinessTrip trip, BusinessTripStatus oldStatus, TripEvent event) {
         if (oldStatus == trip.getStatus()) {
             return;
         }
@@ -239,6 +239,8 @@ public class TripEventServiceImpl implements TripEventService {
                 .newStatus(trip.getStatus())
                 .changedByUserId(authContextService.currentUserId())
                 .changedAt(LocalDateTime.now())
+                .eventType(event.getType())
+                .eventTime(event.getEventTime())
                 .build());
     }
 }
