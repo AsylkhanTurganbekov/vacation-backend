@@ -19,3 +19,5 @@ databaseChangeLog:
       file: db/changelog/migrations/009-add-image-file-name-to-trip-events.yaml
   - include:
       file: db/changelog/migrations/010-create-user-devices-and-notifications.yaml
+  - include:
+      file: db/changelog/migrations/011-add-external-trip-id-to-business-trips.yaml

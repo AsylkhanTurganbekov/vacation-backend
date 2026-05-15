@@ -70,6 +70,9 @@ app:
   firebase:
     service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
     service-account-base64: ${FIREBASE_SERVICE_ACCOUNT_BASE64:}
+  integrations:
+    bitrix:
+      api-key: ${APP_INTEGRATIONS_BITRIX_API_KEY:}
 
 info:
   app:

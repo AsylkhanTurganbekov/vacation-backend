@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-add-external-trip-id-to-business-trips
+      author: codex
+      changes:
+        - addColumn:
+            tableName: business_trips
+            columns:
+              - column:
+                  name: external_trip_id
+                  type: varchar(100)
+        - addUniqueConstraint:
+            tableName: business_trips
+            columnNames: external_trip_id
+            constraintName: uk_business_trips_external_trip_id

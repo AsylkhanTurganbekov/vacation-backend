@@ -36,6 +36,9 @@ public class BusinessTrip extends BaseEntity {
     @Column(name = "destination_address", nullable = false, length = 500)
     private String destinationAddress;
 
+    @Column(name = "external_trip_id", length = 100, unique = true)
+    private String externalTripId;
+
     @Column(name = "planned_start_date_time", nullable = false)
     private LocalDateTime plannedStartDateTime;
 

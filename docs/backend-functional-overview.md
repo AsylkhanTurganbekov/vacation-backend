@@ -296,6 +296,42 @@ Backend отправляет в FCM:
 - получить printable HTML командировочного удостоверения
 - получить PDF командировочного удостоверения
 
+### Bitrix integration API
+
+Для внешней системы Bitrix добавлен отдельный integration contract.
+
+Почему отдельный:
+- не использовать напрямую admin `POST /api/v1/trips`
+- отделить внешний контракт от внутренних admin flows
+- поддержать idempotent upsert по внешнему идентификатору
+
+Новые endpoints:
+- `POST /api/v1/integrations/bitrix/trips`
+- `GET /api/v1/integrations/bitrix/trips/{externalTripId}`
+
+Аутентификация:
+- через header `X-API-Key`
+- значение читается из:
+  - `APP_INTEGRATIONS_BITRIX_API_KEY`
+
+Поля integration request:
+- `externalTripId`
+- `employeeId`
+- `purpose`
+- `destinationAddress`
+- `plannedStartDateTime`
+- `plannedEndDateTime`
+
+Логика:
+- если `externalTripId` еще не существует, создается новая командировка
+- если `externalTripId` уже существует, выполняется update существующей записи
+- новые trips создаются в статусе `DRAFT`
+- completed/cancelled trips не разрешается обновлять через Bitrix integration
+
+Изменение модели trips:
+- в `BusinessTrip` добавлено поле `externalTripId`
+- в `TripResponse` тоже возвращается `externalTripId`
+
 ## Фильтрация командировок
 
 Под dashboard и списки trips backend поддерживает:

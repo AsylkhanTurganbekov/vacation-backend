@@ -9,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class TripResponse {
     private Long id;
+    private String externalTripId;
     private Long employeeId;
     private String employeeName;
     private String employeeAvatarUrl;

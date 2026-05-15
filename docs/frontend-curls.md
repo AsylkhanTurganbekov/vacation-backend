@@ -241,6 +241,60 @@ curl 'http://92.38.49.156:8090/api/v1/trips?page=0&size=20&sort=plannedStartDate
   -H 'Authorization: Bearer ACCESS_TOKEN'
 ```
 
+## 10.1. Bitrix integration: создать или обновить командировку
+
+Используется внешней системой Bitrix. Это отдельный integration endpoint, не admin API.
+
+Обязательный header:
+- `X-API-Key`
+
+```bash
+curl -X POST 'http://92.38.49.156:8090/api/v1/integrations/bitrix/trips' \
+  -H 'X-API-Key: BITRIX_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "externalTripId": "BX-TRIP-10025",
+    "employeeId": 2,
+    "purpose": "Client infrastructure inspection",
+    "destinationAddress": "Astana, Mangilik El 55",
+    "plannedStartDateTime": "2026-05-20T09:00:00",
+    "plannedEndDateTime": "2026-05-22T18:00:00"
+  }'
+```
+
+Логика:
+- если `externalTripId` новый, backend создаст командировку в статусе `DRAFT`
+- если `externalTripId` уже существует, backend обновит найденную командировку
+
+Пример ответа:
+
+```json
+{
+  "id": 25,
+  "externalTripId": "BX-TRIP-10025",
+  "employeeId": 2,
+  "employeeName": "Demo Employee",
+  "employeeAvatarUrl": "/api/v1/users/2/avatar",
+  "purpose": "Client infrastructure inspection",
+  "destinationAddress": "Astana, Mangilik El 55",
+  "plannedStartDateTime": "2026-05-20T09:00:00",
+  "plannedEndDateTime": "2026-05-22T18:00:00",
+  "actualStartDateTime": null,
+  "actualArrivalDateTime": null,
+  "actualReturnDateTime": null,
+  "status": "DRAFT",
+  "createdAt": "2026-05-15T12:00:00",
+  "updatedAt": "2026-05-15T12:00:00"
+}
+```
+
+## 10.2. Bitrix integration: получить командировку по внешнему id
+
+```bash
+curl 'http://92.38.49.156:8090/api/v1/integrations/bitrix/trips/BX-TRIP-10025' \
+  -H 'X-API-Key: BITRIX_API_KEY'
+```
+
 ## 11. Фильтрация trips под dashboard
 
 Поддерживаемые query params:

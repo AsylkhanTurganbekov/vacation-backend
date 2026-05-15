@@ -29,6 +29,9 @@ public interface BusinessTripRepository extends JpaRepository<BusinessTrip, Long
     @EntityGraph(attributePaths = "employee")
     Optional<BusinessTrip> findByIdAndEmployee_Id(Long id, Long employeeId);
 
+    @EntityGraph(attributePaths = "employee")
+    Optional<BusinessTrip> findByExternalTripId(String externalTripId);
+
     long countByEmployee_Id(Long employeeId);
 
     long countByEmployee_IdAndStatus(Long employeeId, BusinessTripStatus status);
