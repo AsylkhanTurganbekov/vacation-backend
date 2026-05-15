@@ -263,7 +263,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/integrations/bitrix/trips' \
 ```
 
 Логика:
-- если `externalTripId` новый, backend создаст командировку в статусе `DRAFT`
+- если `externalTripId` новый, backend создаст командировку в статусе `APPROVED`
 - если `externalTripId` уже существует, backend обновит найденную командировку
 
 Пример ответа:
@@ -282,7 +282,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/integrations/bitrix/trips' \
   "actualStartDateTime": null,
   "actualArrivalDateTime": null,
   "actualReturnDateTime": null,
-  "status": "DRAFT",
+  "status": "APPROVED",
   "createdAt": "2026-05-15T12:00:00",
   "updatedAt": "2026-05-15T12:00:00"
 }
