@@ -51,6 +51,7 @@ public class TripCertificateServiceImpl implements TripCertificateService {
                 .documentNumber(buildDocumentNumber(trip))
                 .documentDate(trip.getCreatedAt().toLocalDate())
                 .employeeFullName(trip.getEmployee().getFullName())
+                .iin(trip.getEmployee().getIin())
                 .department(trip.getEmployee().getDepartment())
                 .position(trip.getEmployee().getPosition())
                 .personnelNumber(trip.getEmployee().getId().toString())

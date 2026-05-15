@@ -14,6 +14,7 @@ public class TripCertificateResponse {
     private String documentNumber;
     private LocalDate documentDate;
     private String employeeFullName;
+    private String iin;
     private String department;
     private String position;
     private String personnelNumber;

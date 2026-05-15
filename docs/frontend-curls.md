@@ -397,6 +397,7 @@ Content-Disposition: inline; filename="trip-certificate-2.pdf"
 - `documentNumber`
 - `documentDate`
 - `employeeFullName`
+- `iin`
 - `department`
 - `position`
 - `personnelNumber`
