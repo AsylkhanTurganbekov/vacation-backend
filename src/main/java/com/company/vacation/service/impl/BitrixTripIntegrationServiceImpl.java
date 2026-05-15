@@ -49,7 +49,8 @@ public class BitrixTripIntegrationServiceImpl implements BitrixTripIntegrationSe
         trip.setPlannedStartDateTime(request.getPlannedStartDateTime());
         trip.setPlannedEndDateTime(request.getPlannedEndDateTime());
         if (created) {
-            trip.setStatus(BusinessTripStatus.DRAFT);
+            // Bitrix calls this endpoint only after the trip is approved on their side.
+            trip.setStatus(BusinessTripStatus.APPROVED);
         }
 
         trip = businessTripRepository.save(trip);
