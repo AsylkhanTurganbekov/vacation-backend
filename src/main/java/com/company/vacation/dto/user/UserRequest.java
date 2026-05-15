@@ -4,6 +4,7 @@ import com.company.vacation.entity.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,9 @@ public class UserRequest {
     @Email
     @NotBlank
     private String email;
+
+    @Pattern(regexp = "^\\d{12}$", message = "must contain exactly 12 digits")
+    private String iin;
 
     @NotBlank
     @Size(min = 8, max = 100)

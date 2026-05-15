@@ -28,6 +28,7 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/auth/login' \
     "id": 1,
     "fullName": "System Administrator",
     "email": "admin@vacation.local",
+    "iin": null,
     "role": "ADMIN"
   }
 }
@@ -38,6 +39,22 @@ curl -X POST 'http://92.38.49.156:8090/api/v1/auth/login' \
 ```bash
 curl 'http://92.38.49.156:8090/api/v1/auth/me' \
   -H 'Authorization: Bearer ACCESS_TOKEN'
+```
+
+Пример ответа:
+
+```json
+{
+  "id": 2,
+  "fullName": "Demo Employee",
+  "email": "employee@vacation.local",
+  "iin": "990101300123",
+  "role": "EMPLOYEE",
+  "department": "Field Service",
+  "position": "Field Engineer",
+  "avatarUrl": "/api/v1/users/2/avatar",
+  "active": true
+}
 ```
 
 ## 3. Refresh token
@@ -172,6 +189,7 @@ curl 'http://92.38.49.156:8090/api/v1/users/2/stats' \
   "userId": 2,
   "fullName": "Demo Employee",
   "email": "employee@vacation.local",
+  "iin": "990101300123",
   "department": "Field Service",
   "position": "Field Engineer",
   "avatarUrl": "/api/v1/users/2/avatar",

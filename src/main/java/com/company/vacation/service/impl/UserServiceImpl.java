@@ -63,9 +63,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserResponse createUser(UserRequest request) {
         ensureUniqueEmail(request.getEmail(), null);
+        ensureUniqueIin(normalizeIin(request.getIin()), null);
         User user = new User();
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail().toLowerCase());
+        user.setIin(normalizeIin(request.getIin()));
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setRole(request.getRole());
         user.setDepartment(request.getDepartment());
@@ -81,8 +83,10 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User user = findUser(id);
         ensureUniqueEmail(request.getEmail(), id);
+        ensureUniqueIin(normalizeIin(request.getIin()), id);
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail().toLowerCase());
+        user.setIin(normalizeIin(request.getIin()));
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
@@ -165,6 +169,25 @@ public class UserServiceImpl implements UserService {
                 throw new BusinessException("Email is already in use");
             }
         });
+    }
+
+    private void ensureUniqueIin(String iin, Long excludedId) {
+        if (iin == null || iin.isBlank()) {
+            return;
+        }
+        userRepository.findByIin(iin).ifPresent(existing -> {
+            if (excludedId == null || !existing.getId().equals(excludedId)) {
+                throw new BusinessException("IIN is already in use");
+            }
+        });
+    }
+
+    private String normalizeIin(String iin) {
+        if (iin == null) {
+            return null;
+        }
+        String trimmed = iin.trim();
+        return trimmed.isBlank() ? null : trimmed;
     }
 
     private void ensureAvatarAccess(User user) {

@@ -1,0 +1,15 @@
+databaseChangeLog:
+  - changeSet:
+      id: 012-add-iin-to-users
+      author: codex
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: iin
+                  type: varchar(12)
+        - addUniqueConstraint:
+            tableName: users
+            columnNames: iin
+            constraintName: uk_users_iin
