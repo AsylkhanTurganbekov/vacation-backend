@@ -4,6 +4,8 @@ import com.company.vacation.dto.integration.bitrix.BitrixTripUpsertRequest;
 import com.company.vacation.dto.trip.TripResponse;
 import com.company.vacation.service.BitrixTripIntegrationService;
 import jakarta.validation.Valid;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -48,7 +50,8 @@ public class BitrixTripIntegrationController {
         if (requestApiKey == null || requestApiKey.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Missing X-API-Key header");
         }
-        if (!apiKey.equals(requestApiKey)) {
+        if (!MessageDigest.isEqual(apiKey.getBytes(StandardCharsets.UTF_8),
+                requestApiKey.getBytes(StandardCharsets.UTF_8))) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid X-API-Key");
         }
     }

@@ -13,6 +13,15 @@ spring:
   jpa:
     show-sql: false
 
+app:
+  biometric:
+    provider: ${APP_BIOMETRIC_PROVIDER:http}
+
 logging:
   level:
     com.company.vacation: INFO
+
+management:
+  endpoint:
+    health:
+      show-details: never

@@ -22,6 +22,10 @@ spring:
   mvc:
     problemdetails:
       enabled: false
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
 
 server:
   port: ${SERVER_PORT:8081}
@@ -35,7 +39,9 @@ management:
         include: health,info,metrics
   endpoint:
     health:
-      show-details: always
+      show-details: when_authorized
+      probes:
+        enabled: true
   health:
     mail:
       enabled: false
@@ -57,7 +63,7 @@ app:
     local-url: ${APP_OPENAPI_LOCAL_URL:http://localhost:${SERVER_PORT:8081}}
     prod-url: ${APP_OPENAPI_PROD_URL:}
   jwt:
-    secret: ${APP_JWT_SECRET:0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF}
+    secret: ${APP_JWT_SECRET}
     expiration: ${APP_JWT_EXPIRATION:86400000}
     refresh-expiration: ${APP_JWT_REFRESH_EXPIRATION:2592000000}
   storage:
@@ -66,7 +72,13 @@ app:
   documents:
     organization-name: ${APP_DOCUMENTS_ORGANIZATION_NAME:АО "Национальные информационные технологии"}
   biometric:
+    provider: ${APP_BIOMETRIC_PROVIDER:mock}
     mock-provider-name: ${APP_BIOMETRIC_PROVIDER_NAME:mock-face-provider}
+    http:
+      base-url: ${APP_BIOMETRIC_HTTP_BASE_URL:}
+      api-key: ${APP_BIOMETRIC_HTTP_API_KEY:}
+      connect-timeout-ms: ${APP_BIOMETRIC_HTTP_CONNECT_TIMEOUT_MS:2000}
+      request-timeout-ms: ${APP_BIOMETRIC_HTTP_REQUEST_TIMEOUT_MS:8000}
   firebase:
     service-account-path: ${FIREBASE_SERVICE_ACCOUNT_PATH:}
     service-account-base64: ${FIREBASE_SERVICE_ACCOUNT_BASE64:}

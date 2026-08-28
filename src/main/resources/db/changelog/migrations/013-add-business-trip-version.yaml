@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-add-business-trip-version
+      author: codex
+      changes:
+        - addColumn:
+            tableName: business_trips
+            columns:
+              - column:
+                  name: version
+                  type: bigint
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false

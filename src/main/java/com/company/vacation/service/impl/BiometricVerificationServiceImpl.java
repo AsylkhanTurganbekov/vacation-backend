@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +76,7 @@ public class BiometricVerificationServiceImpl implements BiometricVerificationSe
     private void ensureAccess(Long employeeId) {
         if (authContextService.currentUserRole() == Role.EMPLOYEE
                 && !authContextService.currentUserId().equals(employeeId)) {
-            throw new BusinessException("Employees cannot access biometric data of other users");
+            throw new AccessDeniedException("Employees cannot access biometric data of other users");
         }
     }
 }

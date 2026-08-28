@@ -34,6 +34,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
@@ -55,9 +56,10 @@ public class TripEventServiceImpl implements TripEventService {
     @Transactional
     public TripEventResponse createEvent(Long tripId, TripEventType type, TripEventRequest request) {
         validateImagePayload(request);
-        BusinessTrip trip = businessTripService.findTrip(tripId);
+        BusinessTrip trip = businessTripService.findTripForUpdate(tripId);
         ensureTripAccess(trip);
         validateBusinessFlow(trip, type);
+        validateEventTime(trip, type, request.getEventTime());
         BusinessTripStatus oldStatus = trip.getStatus();
 
         TripEvent event = new TripEvent();
@@ -121,7 +123,7 @@ public class TripEventServiceImpl implements TripEventService {
     private void ensureTripAccess(BusinessTrip trip) {
         if (authContextService.currentUserRole() == Role.EMPLOYEE
                 && !trip.getEmployee().getId().equals(authContextService.currentUserId())) {
-            throw new BusinessException("Employees can only operate on their own trips");
+            throw new AccessDeniedException("Employees can only operate on their own trips");
         }
     }
 
@@ -156,6 +158,17 @@ public class TripEventServiceImpl implements TripEventService {
         boolean hasUrl = request.getImageUrl() != null && !request.getImageUrl().isBlank();
         if (!hasBase64 && !hasUrl) {
             throw new ApiValidationException("Either imageBase64 or imageUrl must be provided");
+        }
+    }
+
+    private void validateEventTime(BusinessTrip trip, TripEventType type, LocalDateTime eventTime) {
+        LocalDateTime previousEventTime = switch (type) {
+            case DEPARTURE -> null;
+            case ARRIVAL -> trip.getActualStartDateTime();
+            case RETURN -> trip.getActualArrivalDateTime();
+        };
+        if (previousEventTime != null && eventTime.isBefore(previousEventTime)) {
+            throw new ApiValidationException(type + " eventTime cannot be before the previous trip event");
         }
     }
 
@@ -207,6 +220,10 @@ public class TripEventServiceImpl implements TripEventService {
             }
 
             byte[] imageBytes = Base64.getDecoder().decode(sanitized);
+            if (imageBytes.length == 0 || imageBytes.length > 5L * 1024 * 1024) {
+                throw new ApiValidationException("Trip event image size must be between 1 byte and 5 MB");
+            }
+            extension = imageExtension(imageBytes, extension);
             Files.createDirectories(tripEventImageStoragePath());
             String fileName = UUID.randomUUID() + extension;
             Files.write(tripEventImageStoragePath().resolve(fileName), imageBytes);
@@ -223,6 +240,21 @@ public class TripEventServiceImpl implements TripEventService {
             case "image/webp" -> ".webp";
             default -> ".bin";
         };
+    }
+
+    private String imageExtension(byte[] bytes, String declaredExtension) {
+        if (bytes.length >= 3 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xD8 && (bytes[2] & 0xFF) == 0xFF) {
+            return ".jpg";
+        }
+        if (bytes.length >= 8 && (bytes[0] & 0xFF) == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47
+                && bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A) {
+            return ".png";
+        }
+        if (bytes.length >= 12 && bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F'
+                && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P') {
+            return ".webp";
+        }
+        throw new ApiValidationException("Trip event image must be a JPEG, PNG, or WebP file");
     }
 
     private Path tripEventImageStoragePath() {

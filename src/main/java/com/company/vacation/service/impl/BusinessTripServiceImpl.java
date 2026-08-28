@@ -133,6 +133,11 @@ public class BusinessTripServiceImpl implements BusinessTripService {
                 .orElseThrow(() -> new NotFoundException("Trip not found with id " + id));
     }
 
+    public BusinessTrip findTripForUpdate(Long id) {
+        return businessTripRepository.findWithLockById(id)
+                .orElseThrow(() -> new NotFoundException("Trip not found with id " + id));
+    }
+
     private User findEmployee(Long employeeId) {
         return userRepository.findById(employeeId)
                 .orElseThrow(() -> new NotFoundException("Employee not found with id " + employeeId));

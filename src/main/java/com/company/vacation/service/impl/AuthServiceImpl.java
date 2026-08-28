@@ -8,6 +8,7 @@ import com.company.vacation.dto.auth.RegisterRequest;
 import com.company.vacation.dto.user.UserResponse;
 import com.company.vacation.entity.RefreshToken;
 import com.company.vacation.entity.User;
+import com.company.vacation.entity.enums.Role;
 import com.company.vacation.exception.BusinessException;
 import com.company.vacation.mapper.UserMapper;
 import com.company.vacation.repository.RefreshTokenRepository;
@@ -65,7 +66,9 @@ public class AuthServiceImpl implements AuthService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail().toLowerCase());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole());
+        // Public registration is intentionally limited to employees. Privileged accounts
+        // are created through the ADMIN-only users API.
+        user.setRole(Role.EMPLOYEE);
         user.setDepartment(request.getDepartment());
         user.setPosition(request.getPosition());
         user.setActive(true);

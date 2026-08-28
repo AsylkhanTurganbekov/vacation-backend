@@ -17,3 +17,8 @@ spring:
 logging:
   level:
     com.company.vacation: DEBUG
+
+app:
+  jwt:
+    # Local-only value. Production must supply APP_JWT_SECRET explicitly.
+    secret: ${APP_JWT_SECRET:0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF}

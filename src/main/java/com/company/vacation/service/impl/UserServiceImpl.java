@@ -29,6 +29,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -115,7 +116,7 @@ public class UserServiceImpl implements UserService {
         validateAvatarFile(file);
 
         deleteAvatarFileIfExists(user.getAvatarFileName());
-        String storedFileName = buildAvatarFileName(file.getOriginalFilename());
+        String storedFileName = buildAvatarFileName(file);
         Path storagePath = avatarStoragePath().resolve(storedFileName);
         try {
             Files.createDirectories(storagePath.getParent());
@@ -193,7 +194,7 @@ public class UserServiceImpl implements UserService {
     private void ensureAvatarAccess(User user) {
         if (authContextService.currentUserRole() == Role.EMPLOYEE
                 && !authContextService.currentUserId().equals(user.getId())) {
-            throw new BusinessException("Employees can only modify their own avatar");
+            throw new AccessDeniedException("Employees can only modify their own avatar");
         }
     }
 
@@ -204,21 +205,37 @@ public class UserServiceImpl implements UserService {
         if (file.getSize() > MAX_AVATAR_SIZE_BYTES) {
             throw new ApiValidationException("Avatar file size must not exceed 5 MB");
         }
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new ApiValidationException("Avatar file must be an image");
+        try {
+            if (!imageExtension(file.getBytes()).isPresent()) {
+                throw new ApiValidationException("Avatar file must be a JPEG, PNG, or WebP image");
+            }
+        } catch (IOException exception) {
+            throw new ApiValidationException("Avatar file cannot be read");
         }
     }
 
-    private String buildAvatarFileName(String originalFilename) {
-        String extension = "";
-        if (originalFilename != null) {
-            int extensionIndex = originalFilename.lastIndexOf('.');
-            if (extensionIndex >= 0) {
-                extension = originalFilename.substring(extensionIndex).toLowerCase();
-            }
+    private String buildAvatarFileName(MultipartFile file) {
+        try {
+            return UUID.randomUUID() + imageExtension(file.getBytes())
+                    .orElseThrow(() -> new ApiValidationException("Avatar file must be a JPEG, PNG, or WebP image"));
+        } catch (IOException exception) {
+            throw new ApiValidationException("Avatar file cannot be read");
         }
-        return UUID.randomUUID() + extension;
+    }
+
+    private java.util.Optional<String> imageExtension(byte[] bytes) {
+        if (bytes.length >= 3 && (bytes[0] & 0xFF) == 0xFF && (bytes[1] & 0xFF) == 0xD8 && (bytes[2] & 0xFF) == 0xFF) {
+            return java.util.Optional.of(".jpg");
+        }
+        if (bytes.length >= 8 && (bytes[0] & 0xFF) == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47
+                && bytes[4] == 0x0D && bytes[5] == 0x0A && bytes[6] == 0x1A && bytes[7] == 0x0A) {
+            return java.util.Optional.of(".png");
+        }
+        if (bytes.length >= 12 && bytes[0] == 'R' && bytes[1] == 'I' && bytes[2] == 'F' && bytes[3] == 'F'
+                && bytes[8] == 'W' && bytes[9] == 'E' && bytes[10] == 'B' && bytes[11] == 'P') {
+            return java.util.Optional.of(".webp");
+        }
+        return java.util.Optional.empty();
     }
 
     private void deleteAvatarFileIfExists(String fileName) {

@@ -5,5 +5,6 @@ target/
 *.log
 .tools/
 .env
+offline-bundle/
 uploads/
 vacation-backend-deploy.tar.gz

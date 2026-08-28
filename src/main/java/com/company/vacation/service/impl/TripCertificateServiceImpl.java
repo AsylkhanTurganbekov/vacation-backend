@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
@@ -79,7 +80,7 @@ public class TripCertificateServiceImpl implements TripCertificateService {
     private void ensureTripAccess(BusinessTrip trip) {
         if (authContextService.currentUserRole() == Role.EMPLOYEE
                 && !trip.getEmployee().getId().equals(authContextService.currentUserId())) {
-            throw new BusinessException("Employees can only access their own trip certificates");
+            throw new AccessDeniedException("Employees can only access their own trip certificates");
         }
     }
 
